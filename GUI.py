@@ -10,54 +10,66 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QVBoxLayout
-#import PyQtmain
-from vHelix_auto import open_rpoly
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.widgets import CheckButtons
+from matplotlib.lines import Line2D
 
-from vHelix_auto import open_rpoly
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Line3D
+
 from pyquaternion import Quaternion
-import numpy as np
+
 from tacoxDNA.src.libs import cadnano_utils as cu
 from tacoxDNA.src.libs import base
-from vHelix_auto import move_along_vector
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import math
-from matplotlib.lines import Line2D
-from mpl_toolkits.mplot3d.art3d import Line3D
-from matplotlib.widgets import CheckButtons
+
+from load_files import move_along_vector
+from load_files import open_rpoly, open_ply
 
 
 class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
+
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(639, 108)
+        MainWindow.resize(1000, 108)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        MainWindow.setCentralWidget(self.centralwidget)
 
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(4, 20, 81, 41))
+        self.pushButton.setGeometry(QtCore.QRect(10, 20, 80, 40))
         self.pushButton.setObjectName("pushButton_open_file")
-        self.pushButton.clicked.connect(self.fileDialog)
+        self.pushButton.clicked.connect(self.load_rpoly)
+
+        self.pushButton_loadply = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_loadply.setGeometry(QtCore.QRect(100, 20, 80, 40))
+        self.pushButton_loadply.setObjectName("pushButton_load_ply")
+        self.pushButton_loadply.clicked.connect(self.load_ply)
 
         self.pushButton_plot = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plot.setGeometry(QtCore.QRect(164, 20, 81, 41))
+        self.pushButton_plot.setGeometry(QtCore.QRect(190, 20, 80, 40))
         self.pushButton_plot.setObjectName("pushButton_plot")
-        self.pushButton_plot.clicked.connect(self.button_plot_window)
+        self.pushButton_plot.clicked.connect(self.button_plot_window_rpoly)
+
+        self.pushButton_plot_ply = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_plot_ply.setGeometry(QtCore.QRect(300, 20, 80, 40))
+        self.pushButton_plot_ply.setObjectName("pushButton_plot")
+        self.pushButton_plot_ply.clicked.connect(self.button_plot_window_ply)
 
         self.pushButton_select = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_select.setGeometry(QtCore.QRect(320, 20, 131, 41))
-        self.pushButton_select.setObjectName("pushButton_3")
+        self.pushButton_select.setGeometry(QtCore.QRect(400, 20, 150, 40))
+        self.pushButton_select.setObjectName("pushButton_select_edge")
         self.pushButton_select.clicked.connect(self.button_select)
 
-        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setGeometry(QtCore.QRect(520, 20, 111, 41))
-        self.pushButton_4.setObjectName("pushButton_4")
-
-        MainWindow.setCentralWidget(self.centralwidget)
+        self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 145, 40))
+        self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -67,60 +79,77 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "Open rpoly"))
         self.pushButton_plot.setText(_translate("MainWindow", "Plot mesh"))
-        self.pushButton_select.setText(_translate("MainWindow", "Select from edge list"))
-        self.pushButton_4.setText(_translate("MainWindow", "Reinforce all edges"))
+        self.pushButton_plot_ply.setText(_translate("MainWindow", "Plot ply"))
+        self.pushButton_select.setText(_translate(
+            "MainWindow", "Select from edge list"))
+        self.pushButton_reinforce.setText(
+            _translate("MainWindow", "Reinforce all edges"))
+        self.pushButton_loadply.setText(_translate("MainWindow", "open ply"))
 
-    def button_open_file(self):
-
-        global data, p
-
-        data, fwd_helix_connections, rev_helix_connections = open_rpoly('octahedron.rpoly')
-
-        p = LinePicker(data)
-
-        print('.rpoly opened!')
-
-    def fileDialog(self):
+    def load_rpoly(self):
 
         global data, p
         file_path = QtWidgets.QFileDialog.getOpenFileName()
 
-        #if file_path[-5] != 'rpoly':
-            #print('Need .rpoly!')
-            #exit()
+        # if file_path[-5] != 'rpoly':
+        # print('Need .rpoly!')
+        # exit()
 
-        data, fwd_helix_connections, rev_helix_connections = open_rpoly(str(file_path[0]))
+        data, fwd_helix_connections, rev_helix_connections = open_rpoly(
+            str(file_path[0]))
 
         p = LinePicker(data)
 
         print('.rpoly opened!')
 
-    def button_plot_window(self):
+    def load_ply(self):
+
+        global data, p
+        file_path = QtWidgets.QFileDialog.getOpenFileName()
+
+        num_el, el_list, num_face, faces_list = open_ply(
+            str(file_path[0]))
+
+        print('.ply opened!')
+
+    def button_plot_window_rpoly(self):
 
         global data, plot_win_status, plot_win
         self.expand()
 
         plot_win = plot_window_class()
         plot_win_status = True
-        #print(plot_win.isActiveWindow())
+        # print(plot_win.isActiveWindow())
+        plot_win.move(0, 70)
+        plot_win.show()
+
+    def button_plot_window_ply(self):
+
+        global data, plot_win_status, plot_win
+        self.expand()
+
+        plot_win = plot_window_class()
+        plot_win_status = True
+        # print(plot_win.isActiveWindow())
         plot_win.move(0, 70)
         plot_win.show()
 
     def expand(self):
 
-        MainWindow.resize(1000,1100)
+        MainWindow.resize(1000, 1100)
 
     def button_select(self):
 
         self.b_win = check_boxes()
         self.b_win.show()
 
+
 class plot_window_class(QtWidgets.QWidget):
 
     def __init__(self):
 
         global x_list, y_list, z_list, selected_edges
-        #selected_edges = []
+        # selected_edges = []
 
         QtWidgets.QWidget.__init__(self, MainWindow)
         self.setupUi()
@@ -137,14 +166,13 @@ class plot_window_class(QtWidgets.QWidget):
         self.canvas.setParent(self.main_widget)
         self.ax = Axes3D(self.fig)
 
-        #p = LinePicker(data)
+        # p = LinePicker(data)
 
         self.plot(p)
         vbox = QVBoxLayout(self)
         vbox.addWidget(self.canvas)
 
-
-    def plot(self,data):
+    def plot(self, data):
 
         global selected_edges
         self.lines_list = []
@@ -153,17 +181,17 @@ class plot_window_class(QtWidgets.QWidget):
             x1, y1, z1 = x_list[n], y_list[n], z_list[n]
             x2, y2, z2 = x_list[n + 1], y_list[n + 1], z_list[n + 1]
             self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
-                             linewidth=3, picker=True, label=(n+1))
+                                     linewidth=3, picker=True, label=(n+1))
             self.labels_list.append(str(n + 1))
             self.lines_list.append(self.line)
 
             self.ax.text(x1, y1, z1, s=str(n + 1))
 
         self.line = self.ax.plot([x_list[-1], x_list[0]], [y_list[-1], y_list[0]], [z_list[-1], z_list[0]], color='r',
-                 linewidth=3, picker=True, label=(n+2))
+                                 linewidth=3, picker=True, label=(n+2))
         self.labels_list.append(str(n+2))
         self.lines_list.append(self.line)
-        #print(self.lines_list[0][0].get_data_3d())
+        # print(self.lines_list[0][0].get_data_3d())
 
         self.ax.set_xlabel('X axis')
         self.ax.set_ylabel('Y axis')
@@ -181,16 +209,14 @@ class plot_window_class(QtWidgets.QWidget):
         self.fig.canvas.mpl_connect('pick_event', self.onpick1)
 
         # Make checkbuttons with all plotted lines with correct visibility
-        #self.rax = plt.axes([0.05, 0.4, 0.15, 0.5])
-        #self.labels = [str(label) for label in self.labels_list]
+        # self.rax = plt.axes([0.05, 0.4, 0.15, 0.5])
+        # self.labels = [str(label) for label in self.labels_list]
 
+        # self.check = CheckButtons(self.rax, self.labels)
 
-        #self.check = CheckButtons(self.rax, self.labels)
+        # self.check.on_clicked(self.click_on_check_box)
 
-        #self.check.on_clicked(self.click_on_check_box)
-
-
-    def onpick1(self,event):
+    def onpick1(self, event):
 
         global selected_edges, plot_win
         if isinstance(event.artist, Line2D):
@@ -199,47 +225,47 @@ class plot_window_class(QtWidgets.QWidget):
             if self.lines_list[int(label) - 1][0].get_color() == 'r':
                 (self.lines_list[int(label) - 1][0].set_color('b'))
                 selected_edges.append(int(label) - 1)
-                #self.check.set_active(int(label)-1)
+                # self.check.set_active(int(label)-1)
             else:
                 (self.lines_list[int(label) - 1][0].set_color('r'))
-                #self.check.set_active(int(label)-1)
+                # self.check.set_active(int(label)-1)
                 if int(label)-1 in selected_edges:
                     selected_edges.remove(int(label)-1)
 
         self.canvas.draw()
 
+
 class check_boxes(QtWidgets.QWidget):
 
     def __init__(self):
 
-        global  x_list, selected_edges, plot_win_status
+        global x_list, selected_edges, plot_win_status
 
         QtWidgets.QCheckBox.__init__(self)
-        #self.setupUi()
+        # self.setupUi()
         self.resize(200, len(x_list)*22)
         i = 0
         self.label_list = []
         for x in x_list:
-            self.label = x_list.index(x) +1
+            self.label = x_list.index(x) + 1
             self.label_list.append(self.label)
             self.box = QtWidgets.QCheckBox(str(self.label), self)
             self.box.move(10, i+20)
             self.box.stateChanged.connect(self.click_on_check_box)
-            #print(self.box.isChecked())
+            # print(self.box.isChecked())
 
             i += 20
-
 
     def click_on_check_box(self, label):
 
         global selected_edges, plot_win_status, plot_win
 
         checkBox = self.sender()
-        selected = int(checkBox.text()) -1
-        #print(self.box.isChecked())
-        #print(len(selected))
+        selected = int(checkBox.text()) - 1
+        # print(self.box.isChecked())
+        # print(len(selected))
         if selected not in selected_edges:
-            #(self.lines_list[int(label) - 1][0].set_color('b'))
+            # (self.lines_list[int(label) - 1][0].set_color('b'))
             self.selected_box = int(checkBox.text()) - 1
             selected_edges.append(self.selected_box)
             if plot_win_status == True:
@@ -247,15 +273,16 @@ class check_boxes(QtWidgets.QWidget):
                 plot_window_class.onpick1()
 
         else:
-            #(self.lines_list[int(label) - 1][0].set_color('r'))
+            # (self.lines_list[int(label) - 1][0].set_color('r'))
             self.selected_box = int(checkBox.text()) - 1
             checkBox.setChecked(False)
             if int(self.selected_box) in selected_edges:
-                    selected_edges.remove(self.selected_box)
+                selected_edges.remove(self.selected_box)
 
-        print (selected_edges)
+        print(selected_edges)
         # plt.draw()
         plot_win.canvas.draw()
+
 
 class LinePicker(object):
 
@@ -283,7 +310,8 @@ class LinePicker(object):
                     [0.0, 0.0, 1.0]))  # use it to figure out direction vec = q.rotate(np.array([0.0, 0.0, 1.0]))
             vec2 = q.rotate([0.65, -0.76, 0.0])
             n_bp = int(i[2])
-            new_position = move_along_vector(position, vec, n_bp)  # calculate the position of start base
+            # calculate the position of start base
+            new_position = move_along_vector(position, vec, n_bp)
             new_position_list.append(new_position)
 
             new_strands = generator.generate_or_sq(bp=n_bp, start_pos=new_position, direction=vec,
@@ -291,7 +319,8 @@ class LinePicker(object):
 
             (scaffold_fragments.add_strand(new_strands[0]))
 
-            sequence = new_strands[0]._get_Marco_output()  # get the sequence only for scaffold (like the one in .conf file)
+            # get the sequence only for scaffold (like the one in .conf file)
+            sequence = new_strands[0]._get_Marco_output()
 
             sequence_list = sequence.split('\n')
 
