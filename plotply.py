@@ -18,12 +18,10 @@ for i in range(number_face):
             point1 = faces_list[i,j]
             point2 = faces_list[i,j+1]
 
-        print(str(point1) + " to " + str(point2))
-
         xx = [vertices_list[point1,0], vertices_list[point2,0]]
         yy = [vertices_list[point1,1], vertices_list[point2,1]]
         zz = [vertices_list[point1,2], vertices_list[point2,2]]
-        ax.plot(xx,yy,zz)
+        ax.plot(xx,yy,zz,'r')
 
 
 ax.scatter(vertices_list[:,0],vertices_list[:,1],vertices_list[:,2])

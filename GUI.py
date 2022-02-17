@@ -47,15 +47,15 @@ class Ui_MainWindow(object):
         self.pushButton.setObjectName("pushButton_open_file")
         self.pushButton.clicked.connect(self.load_rpoly)
 
-        self.pushButton_loadply = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_loadply.setGeometry(QtCore.QRect(100, 20, 80, 40))
-        self.pushButton_loadply.setObjectName("pushButton_load_ply")
-        self.pushButton_loadply.clicked.connect(self.load_ply)
-
         self.pushButton_plot = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plot.setGeometry(QtCore.QRect(190, 20, 80, 40))
+        self.pushButton_plot.setGeometry(QtCore.QRect(100, 20, 80, 40))
         self.pushButton_plot.setObjectName("pushButton_plot")
         self.pushButton_plot.clicked.connect(self.button_plot_window_rpoly)
+
+        self.pushButton_loadply = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_loadply.setGeometry(QtCore.QRect(210, 20, 80, 40))
+        self.pushButton_loadply.setObjectName("pushButton_load_ply")
+        self.pushButton_loadply.clicked.connect(self.load_ply)
 
         self.pushButton_plot_ply = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_plot_ply.setGeometry(QtCore.QRect(300, 20, 80, 40))
@@ -78,13 +78,13 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "Open rpoly"))
-        self.pushButton_plot.setText(_translate("MainWindow", "Plot mesh"))
+        self.pushButton_plot.setText(_translate("MainWindow", "Plot rpoly"))
+        self.pushButton_loadply.setText(_translate("MainWindow", "Open ply"))
         self.pushButton_plot_ply.setText(_translate("MainWindow", "Plot ply"))
         self.pushButton_select.setText(_translate(
             "MainWindow", "Select from edge list"))
         self.pushButton_reinforce.setText(
             _translate("MainWindow", "Reinforce all edges"))
-        self.pushButton_loadply.setText(_translate("MainWindow", "open ply"))
 
     def load_rpoly(self):
 
@@ -105,10 +105,10 @@ class Ui_MainWindow(object):
 
     def load_ply(self):
 
-        global data_ply, p
+        global number_vertices, vertices_list, number_face, faces_list, p
         file_path = QtWidgets.QFileDialog.getOpenFileName()
 
-        num_el, el_list, num_face, faces_list = open_ply(
+        number_vertices, vertices_list, number_face, faces_list = open_ply(
             str(file_path[0]))
 
         print('.ply opened!')
@@ -129,7 +129,7 @@ class Ui_MainWindow(object):
         global data_ply, plot_win_status, plot_win
         self.expand()
 
-        plot_win = plot_window_class()
+        plot_win = plot_window_class_ply()
         plot_win_status = True
         # print(plot_win.isActiveWindow())
         plot_win.move(0, 70)
@@ -168,33 +168,55 @@ class plot_window_class_ply(QtWidgets.QWidget):
 
         # p = LinePicker(data)
 
-        self.plot(p)
+        self.plot()
         vbox = QVBoxLayout(self)
         vbox.addWidget(self.canvas)
 
     def plot(self):
 
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
 
-        self.lines_list = []
+        for i in range(number_face):
+            for j in range(1,faces_list[i][0]+1):
+                if j == len(faces_list[0])-1:
+                    point1 = faces_list[i,j]
+                    point2 = faces_list[i,1]
+                else:            
+                    point1 = faces_list[i,j]
+                    point2 = faces_list[i,j+1]
 
-        for n in range(0, len(x_list) - 1):
-            x1, y1, z1 = x_list[n], y_list[n], z_list[n]
-            x2, y2, z2 = x_list[n + 1], y_list[n + 1], z_list[n + 1]
-            self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
-                                     linewidth=3, picker=True, label=(n+1))
-            self.labels_list.append(str(n + 1))
-            self.lines_list.append(self.line)
+                xx = [vertices_list[point1,0], vertices_list[point2,0]]
+                yy = [vertices_list[point1,1], vertices_list[point2,1]]
+                zz = [vertices_list[point1,2], vertices_list[point2,2]]
+                self.ax.plot(xx,yy,zz,'r')
 
-            self.ax.text(x1, y1, z1, s=str(n + 1))
 
-        self.line = self.ax.plot([x_list[-1], x_list[0]], [y_list[-1], y_list[0]], [z_list[-1], z_list[0]], color='r',
-                                 linewidth=3, picker=True, label=(n+2))
-        self.labels_list.append(str(n+2))
-        self.lines_list.append(self.line)
-        # print(self.lines_list[0][0].get_data_3d())
+        self.ax.scatter(vertices_list[:,0],vertices_list[:,1],vertices_list[:,2])
 
-        self.ax.set_xlabel('X axis')
-        self.ax.set_ylabel('Y axis')
+        for i in range(number_vertices):
+            self.ax.text(vertices_list[i,0],vertices_list[i,1],vertices_list[i,2], s=i)
+        # self.plt.show()
+        # self.lines_list = []
+
+        # for n in range(0, len(x_list) - 1):
+        #     x1, y1, z1 = x_list[n], y_list[n], z_list[n]
+        #     x2, y2, z2 = x_list[n + 1], y_list[n + 1], z_list[n + 1]
+        #     self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
+        #                              linewidth=3, picker=True, label=(n+1))
+        #     self.labels_list.append(str(n + 1))
+        #     self.lines_list.append(self.line)
+
+        #     self.ax.text(x1, y1, z1, s=str(n + 1))
+
+        # self.line = self.ax.plot([x_list[-1], x_list[0]], [y_list[-1], y_list[0]], [z_list[-1], z_list[0]], color='r',
+        #                          linewidth=3, picker=True, label=(n+2))
+        # self.labels_list.append(str(n+2))
+        # self.lines_list.append(self.line)
+        # # print(self.lines_list[0][0].get_data_3d())
+
+        # self.ax.set_xlabel('X axis')
+        # self.ax.set_ylabel('Y axis')
         # self.ax.set_zlabel('Z axis')
         # max_range = max([max(x_list) - min(x_list), max(y_list) - min(y_list),
         #                  max(z_list) - min(z_list)]) / 2.0
@@ -239,7 +261,7 @@ class plot_window_class(QtWidgets.QWidget):
 
         # p = LinePicker(data)
 
-        self.plot(p)
+        self.plot()
         vbox = QVBoxLayout(self)
         vbox.addWidget(self.canvas)
 
