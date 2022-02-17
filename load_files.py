@@ -1,4 +1,5 @@
 import re
+import numpy as np
 
 def open_rpoly(rpoly_file):
 
@@ -64,16 +65,18 @@ def open_ply(ply_file):
 
     for line in content[i: i+number_vertices[0]]:
         line = line.split()
+        line = [float(x) for x in line]
         vertices_list.append(line)
 
     for line in content[(i+number_vertices[0]):-1]:
         line = [int(s) for s in line.split() if s.isdigit()]
+
         faces_list.append((line))
         if int(line[0]) != 3:
             #print(line)
             print("Presence of non triangulated faces detected. The script might not work properly.")
 
-    return number_vertices, vertices_list, number_face, faces_list
+    return number_vertices[0], np.array(vertices_list), number_face[0], np.array(faces_list)
 
 def move_along_vector(point, vector,length):  # rpoly file contains center coordinate of helix, "generate" needs end coordiates of helix:
     move_distance = float(

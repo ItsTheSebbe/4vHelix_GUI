@@ -98,13 +98,14 @@ class Ui_MainWindow(object):
         data, fwd_helix_connections, rev_helix_connections = open_rpoly(
             str(file_path[0]))
 
+        print(data)
         p = LinePicker(data)
 
         print('.rpoly opened!')
 
     def load_ply(self):
 
-        global data, p
+        global data_ply, p
         file_path = QtWidgets.QFileDialog.getOpenFileName()
 
         num_el, el_list, num_face, faces_list = open_ply(
@@ -125,7 +126,7 @@ class Ui_MainWindow(object):
 
     def button_plot_window_ply(self):
 
-        global data, plot_win_status, plot_win
+        global data_ply, plot_win_status, plot_win
         self.expand()
 
         plot_win = plot_window_class()
@@ -143,6 +144,76 @@ class Ui_MainWindow(object):
         self.b_win = check_boxes()
         self.b_win.show()
 
+class plot_window_class_ply(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        global x_list, y_list, z_list
+        # selected_edges = []
+
+        QtWidgets.QWidget.__init__(self, MainWindow)
+        self.setupUi()
+        self.resize(1000, 1000)
+        self.setWindowTitle('Mesh Plot')
+
+    def setupUi(self):
+        global p
+        self.labels_list = []
+
+        self.main_widget = QtWidgets.QWidget()
+        self.fig = Figure(figsize=(15, 14.5), dpi=80)
+        self.canvas = FigureCanvas(self.fig)
+        self.canvas.setParent(self.main_widget)
+        self.ax = Axes3D(self.fig)
+
+        # p = LinePicker(data)
+
+        self.plot(p)
+        vbox = QVBoxLayout(self)
+        vbox.addWidget(self.canvas)
+
+    def plot(self):
+
+
+        self.lines_list = []
+
+        for n in range(0, len(x_list) - 1):
+            x1, y1, z1 = x_list[n], y_list[n], z_list[n]
+            x2, y2, z2 = x_list[n + 1], y_list[n + 1], z_list[n + 1]
+            self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
+                                     linewidth=3, picker=True, label=(n+1))
+            self.labels_list.append(str(n + 1))
+            self.lines_list.append(self.line)
+
+            self.ax.text(x1, y1, z1, s=str(n + 1))
+
+        self.line = self.ax.plot([x_list[-1], x_list[0]], [y_list[-1], y_list[0]], [z_list[-1], z_list[0]], color='r',
+                                 linewidth=3, picker=True, label=(n+2))
+        self.labels_list.append(str(n+2))
+        self.lines_list.append(self.line)
+        # print(self.lines_list[0][0].get_data_3d())
+
+        self.ax.set_xlabel('X axis')
+        self.ax.set_ylabel('Y axis')
+        # self.ax.set_zlabel('Z axis')
+        # max_range = max([max(x_list) - min(x_list), max(y_list) - min(y_list),
+        #                  max(z_list) - min(z_list)]) / 2.0
+        # mid_x = (max(x_list) + min(x_list)) * 0.5
+        # mid_y = (max(y_list) + min(y_list)) * 0.5
+        # mid_z = (max(z_list) + min(z_list)) * 0.5
+
+        # self.ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        # self.ax.set_ylim(mid_y - max_range, mid_y + max_range)
+        # self.ax.set_zlim(mid_z - max_range, mid_z + max_range)
+
+
+        # Make checkbuttons with all plotted lines with correct visibility
+        # self.rax = plt.axes([0.05, 0.4, 0.15, 0.5])
+        # self.labels = [str(label) for label in self.labels_list]
+
+        # self.check = CheckButtons(self.rax, self.labels)
+
+        # self.check.on_clicked(self.click_on_check_box)
 
 class plot_window_class(QtWidgets.QWidget):
 
@@ -172,7 +243,7 @@ class plot_window_class(QtWidgets.QWidget):
         vbox = QVBoxLayout(self)
         vbox.addWidget(self.canvas)
 
-    def plot(self, data):
+    def plot(self):
 
         global selected_edges
         self.lines_list = []
