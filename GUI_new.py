@@ -107,7 +107,7 @@ class Ui_MainWindow(object):
         self.ply.show()
     
     def expand(self):
-        MainWindow.resize(1000, 1100)
+        MainWindow.resize(300, 350)
 
    
 
