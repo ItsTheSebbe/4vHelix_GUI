@@ -65,7 +65,7 @@ class Ui_MainWindow(object):
         self.pushButton_select = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select.setGeometry(QtCore.QRect(400, 20, 150, 40))
         self.pushButton_select.setObjectName("pushButton_select_edge")
-        self.pushButton_select.clicked.connect(self.button_select)
+        self.pushButton_select.clicked.connect(self.open_checkbox)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 145, 40))
@@ -109,12 +109,11 @@ class Ui_MainWindow(object):
     def expand(self):
         MainWindow.resize(1000, 1100)
 
-    def button_select(self):
-
-        self.b_win = check_boxes(self.rpoly)
-        self.b_win.show()
+    def open_checkbox(self):
+        self.rpoly.create_checkboxes()
 
 class Ply_Object(QtWidgets.QWidget):
+
     def __init__(self):
         QtWidgets.QWidget.__init__(self, MainWindow)
         self.setupUi()
@@ -165,6 +164,7 @@ class Rpoly_Object(QtWidgets.QWidget):
     def __init__(self):
         QtWidgets.QWidget.__init__(self, MainWindow)
         self.setupUi()
+        self.created_checkboxes = False
 
     def setupUi(self):
         self.setWindowTitle('Rpoly Mesh Plot')
@@ -288,6 +288,9 @@ class Rpoly_Object(QtWidgets.QWidget):
 
         # Update color of line
         self.update_color()
+        if self.created_checkboxes == True:
+            self.check_boxes.update_checkboxes()
+
     
     def update_color(self):
         # Update selected edges label
@@ -302,6 +305,10 @@ class Rpoly_Object(QtWidgets.QWidget):
                 (self.lines_list[int(label)][0].set_color('r'))
         self.canvas.draw()
 
+    def create_checkboxes(self):
+        self.check_boxes = check_boxes(self)
+        self.check_boxes.show()
+        self.created_checkboxes = True
 
 class check_boxes(QtWidgets.QWidget):
 
@@ -314,11 +321,10 @@ class check_boxes(QtWidgets.QWidget):
         # Setup buttons
         self.setupUI()
         # Update states according to 
-        self.update()
-
+        self.update_checkboxes()
         # Add click function
         for i in range(len(self.x_list)):
-            self.box[i].toggled.connect(self.click_on_check_box)
+            self.box[i].stateChanged.connect(self.click_on_check_box)
 
     def setupUI(self):
         """
@@ -337,16 +343,24 @@ class check_boxes(QtWidgets.QWidget):
             i += 20
             cnt += 1
 
-    def update(self):
+    def update_checkboxes(self):
         """
         Updates check boxes and corresponding line colors
         """
         cnt = 0
-        for x in self.x_list:       
+        for x in self.x_list:
+            # Make sure click_on_check_box is not called
+            self.box[cnt].blockSignals(True)     
+
+            # Check if al checkboxes are set correctly
             if self.x_list.index(x) in self.selected_edges:
                 self.box[cnt].setChecked(True)
             else:
                 self.box[cnt].setChecked(False)
+
+            # Turn signals back on
+            self.box[cnt].blockSignals(False)       
+
             cnt += 1
         self.rpoly.update_color()
         # print(str(self.selected_edges))
@@ -361,7 +375,7 @@ class check_boxes(QtWidgets.QWidget):
             self.selected_edges.remove(selected)
         else:
             self.selected_edges.append(selected)
-        self.update()
+        self.update_checkboxes()
                      
 
 
