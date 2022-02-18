@@ -277,71 +277,92 @@ class Rpoly_Object(QtWidgets.QWidget):
         self.fig.canvas.mpl_connect('pick_event', self.select_line)
         
     def select_line(self, event):
-
+        # Check selected line
         if isinstance(event.artist, Line2D):
             thisline = event.artist
             label = thisline.get_label()
-            if self.lines_list[int(label) - 1][0].get_color() == 'r':
-                (self.lines_list[int(label) - 1][0].set_color('b'))
-                self.selected_edges.append(int(label) - 1)
-                # self.check.set_active(int(label)-1)
+            if int(label)-1 in self.selected_edges:
+                self.selected_edges.remove(int(label)-1)
             else:
-                (self.lines_list[int(label) - 1][0].set_color('r'))
-                # self.check.set_active(int(label)-1)
-                if int(label)-1 in self.selected_edges:
-                    self.selected_edges.remove(int(label)-1)
+                self.selected_edges.append(int(label) - 1)
 
-        self.canvas.draw()
+        # Update color of line
+        self.update_color()
+    
+    def update_color(self):
+        # Update selected edges label
         self.selected_edges_label.setText("Selected Edges: " + str(self.selected_edges))
         self.selected_edges_label.adjustSize()
 
-# class check_boxes(QtWidgets.QWidget):
+        # Update color of line
+        for label in range(len(self.x_list)):
+            if label in self.selected_edges:
+                (self.lines_list[int(label)][0].set_color('b'))
+            else:
+                (self.lines_list[int(label)][0].set_color('r'))
+        self.canvas.draw()
 
-#     def __init__(self):
-        
-#         global x_list, selected_edges, plot_win_status
 
-#         QtWidgets.QCheckBox.__init__(self)
-#         # self.setupUi()
-#         self.resize(200, len(x_list)*22)
-#         i = 0
-#         self.label_list = []
-#         for x in x_list:
-#             self.label = x_list.index(x) + 1
-#             self.label_list.append(self.label)
-#             self.box = QtWidgets.QCheckBox(str(self.label), self)
-#             self.box.move(10, i+20)
-#             self.box.stateChanged.connect(self.click_on_check_box)
-#             # print(self.box.isChecked())
+class check_boxes(QtWidgets.QWidget):
 
-#             i += 20
+    def __init__(self,rpoly):
+        self.rpoly = rpoly
+        self.x_list = rpoly.x_list
+        self.selected_edges = rpoly.selected_edges
+        QtWidgets.QCheckBox.__init__(self)
 
-#     def click_on_check_box(self, label):
+        # Setup buttons
+        self.setupUI()
+        # Update states according to 
+        self.update()
 
-#         global selected_edges, plot_win_status, plot_win
+        # Add click function
+        for i in range(len(self.x_list)):
+            self.box[i].toggled.connect(self.click_on_check_box)
 
-#         checkBox = self.sender()
-#         selected = int(checkBox.text()) - 1
-#         # print(self.box.isChecked())
-#         # print(len(selected))
-#         if selected not in selected_edges:
-#             # (self.lines_list[int(label) - 1][0].set_color('b'))
-#             self.selected_box = int(checkBox.text()) - 1
-#             selected_edges.append(self.selected_box)
-#             if plot_win_status == True:
-#                 print('oo')
-#                 plot_window_class.onpick1()
+    def setupUI(self):
+        """
+        Set up of check box UI.
+        """
+        self.resize(200, len(self.x_list)*22)
+        i = 0
+        cnt = 0
+        self.box = {}
+        self.label_list = []
+        for x in self.x_list:
+            self.label = self.x_list.index(x) 
+            self.label_list.append(self.label)
+            self.box[cnt] = QtWidgets.QCheckBox(str(self.label), self)
+            self.box[cnt].move(10, i+20)
+            i += 20
+            cnt += 1
 
-#         else:
-#             # (self.lines_list[int(label) - 1][0].set_color('r'))
-#             self.selected_box = int(checkBox.text()) - 1
-#             checkBox.setChecked(False)
-#             if int(self.selected_box) in selected_edges:
-#                 selected_edges.remove(self.selected_box)
+    def update(self):
+        """
+        Updates check boxes and corresponding line colors
+        """
+        cnt = 0
+        for x in self.x_list:       
+            if self.x_list.index(x) in self.selected_edges:
+                self.box[cnt].setChecked(True)
+            else:
+                self.box[cnt].setChecked(False)
+            cnt += 1
+        self.rpoly.update_color()
+        # print(str(self.selected_edges))
 
-#         print(selected_edges)
-#         # plt.draw()
-#         plot_win.canvas.draw()
+    def click_on_check_box(self):
+        """
+        Add/remove selected edges
+        """
+        checkBox = self.sender()
+        selected = int(checkBox.text())
+        if selected in self.selected_edges:
+            self.selected_edges.remove(selected)
+        else:
+            self.selected_edges.append(selected)
+        self.update()
+                     
 
 
 if __name__ == "__main__":

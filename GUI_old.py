@@ -361,9 +361,9 @@ class check_boxes(QtWidgets.QWidget):
             # (self.lines_list[int(label) - 1][0].set_color('b'))
             self.selected_box = int(checkBox.text()) - 1
             selected_edges.append(self.selected_box)
-            if plot_win_status == True:
-                print('oo')
-                plot_window_class.onpick1()
+            # if plot_win_status == True:
+            #     print('oo')
+            #     plot_window_class.onpick1()
 
         else:
             # (self.lines_list[int(label) - 1][0].set_color('r'))
