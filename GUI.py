@@ -65,7 +65,7 @@ class Ui_MainWindow(object):
         self.pushButton_select = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select.setGeometry(QtCore.QRect(400, 20, 150, 40))
         self.pushButton_select.setObjectName("pushButton_select_edge")
-        # self.pushButton_select.clicked.connect(self.button_select)
+        self.pushButton_select.clicked.connect(self.button_select)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 145, 40))
@@ -93,7 +93,7 @@ class Ui_MainWindow(object):
     def plot_rpoly(self):
         self.rpoly.plot()
         self.expand()
-        self.rpoly.move(0, 70)
+        self.rpoly.move(0, 100)
         self.rpoly.show()
 
     def load_ply(self):
@@ -109,8 +109,10 @@ class Ui_MainWindow(object):
     def expand(self):
         MainWindow.resize(1000, 1100)
 
-   
+    def button_select(self):
 
+        self.b_win = check_boxes(self.rpoly)
+        self.b_win.show()
 
 class Ply_Object(QtWidgets.QWidget):
     def __init__(self):
@@ -237,6 +239,12 @@ class Rpoly_Object(QtWidgets.QWidget):
         self.lines_list = []
         self.labels_list = []
 
+        self.selected_edges_label = QtWidgets.QLabel(MainWindow)
+        self.selected_edges_label.move(50, 70)
+        self.selected_edges_label.setText("Selected Edges: " + str(self.selected_edges))
+        self.selected_edges_label.adjustSize()
+        self.selected_edges_label.show()
+
         for n in range(0, len(self.x_list) - 1):
             x1, y1, z1 = self.x_list[n], self.y_list[n], self.z_list[n]
             x2, y2, z2 = self.x_list[n + 1], self.y_list[n + 1], self.z_list[n + 1]
@@ -284,7 +292,56 @@ class Rpoly_Object(QtWidgets.QWidget):
                     self.selected_edges.remove(int(label)-1)
 
         self.canvas.draw()
-        print(self.selected_edges)
+        self.selected_edges_label.setText("Selected Edges: " + str(self.selected_edges))
+        self.selected_edges_label.adjustSize()
+
+# class check_boxes(QtWidgets.QWidget):
+
+#     def __init__(self):
+        
+#         global x_list, selected_edges, plot_win_status
+
+#         QtWidgets.QCheckBox.__init__(self)
+#         # self.setupUi()
+#         self.resize(200, len(x_list)*22)
+#         i = 0
+#         self.label_list = []
+#         for x in x_list:
+#             self.label = x_list.index(x) + 1
+#             self.label_list.append(self.label)
+#             self.box = QtWidgets.QCheckBox(str(self.label), self)
+#             self.box.move(10, i+20)
+#             self.box.stateChanged.connect(self.click_on_check_box)
+#             # print(self.box.isChecked())
+
+#             i += 20
+
+#     def click_on_check_box(self, label):
+
+#         global selected_edges, plot_win_status, plot_win
+
+#         checkBox = self.sender()
+#         selected = int(checkBox.text()) - 1
+#         # print(self.box.isChecked())
+#         # print(len(selected))
+#         if selected not in selected_edges:
+#             # (self.lines_list[int(label) - 1][0].set_color('b'))
+#             self.selected_box = int(checkBox.text()) - 1
+#             selected_edges.append(self.selected_box)
+#             if plot_win_status == True:
+#                 print('oo')
+#                 plot_window_class.onpick1()
+
+#         else:
+#             # (self.lines_list[int(label) - 1][0].set_color('r'))
+#             self.selected_box = int(checkBox.text()) - 1
+#             checkBox.setChecked(False)
+#             if int(self.selected_box) in selected_edges:
+#                 selected_edges.remove(self.selected_box)
+
+#         print(selected_edges)
+#         # plt.draw()
+#         plot_win.canvas.draw()
 
 
 if __name__ == "__main__":
