@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -30,6 +31,7 @@ from tacoxDNA.src.libs import base
 
 from load_files import move_along_vector
 from load_files import open_rpoly, open_ply
+from vHelix_auto_2 import GenerateJson
 
 
 class Ui_MainWindow(object):
@@ -43,33 +45,39 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(10, 20, 80, 40))
+        self.pushButton.setGeometry(QtCore.QRect(10, 20, 90, 40))
         self.pushButton.setObjectName("pushButton_open_file")
         self.pushButton.clicked.connect(self.load_rpoly)
 
         self.pushButton_plot = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plot.setGeometry(QtCore.QRect(100, 20, 80, 40))
+        self.pushButton_plot.setGeometry(QtCore.QRect(110, 20, 90, 40))
         self.pushButton_plot.setObjectName("pushButton_plot")
         self.pushButton_plot.clicked.connect(self.plot_rpoly)
 
         self.pushButton_loadply = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_loadply.setGeometry(QtCore.QRect(210, 20, 80, 40))
+        self.pushButton_loadply.setGeometry(QtCore.QRect(230, 20, 90, 40))
         self.pushButton_loadply.setObjectName("pushButton_load_ply")
         self.pushButton_loadply.clicked.connect(self.load_ply)
 
         self.pushButton_plot_ply = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plot_ply.setGeometry(QtCore.QRect(300, 20, 80, 40))
+        self.pushButton_plot_ply.setGeometry(QtCore.QRect(330, 20, 90, 40))
         self.pushButton_plot_ply.setObjectName("pushButton_plot_ply")
         self.pushButton_plot_ply.clicked.connect(self.plot_ply)
 
         self.pushButton_select = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_select.setGeometry(QtCore.QRect(400, 20, 150, 40))
+        self.pushButton_select.setGeometry(QtCore.QRect(450, 20, 90, 40))
         self.pushButton_select.setObjectName("pushButton_select_edge")
         self.pushButton_select.clicked.connect(self.open_checkbox)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 145, 40))
+        self.pushButton_reinforce.setGeometry(QtCore.QRect(740, 20, 180, 40))
         self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
+        self.pushButton_reinforce.clicked.connect(self.reinforce_selected)
+
+        self.pushButton_select_all = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_select_all.setGeometry(QtCore.QRect(550, 20, 90, 40))
+        self.pushButton_select_all.setObjectName("pushButton_select_all_edge")
+        self.pushButton_select_all.clicked.connect(self.select_all)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -82,14 +90,16 @@ class Ui_MainWindow(object):
         self.pushButton_loadply.setText(_translate("MainWindow", "Open ply"))
         self.pushButton_plot_ply.setText(_translate("MainWindow", "Plot ply"))
         self.pushButton_select.setText(_translate(
-            "MainWindow", "Select from edge list"))
+            "MainWindow", "Select edge"))
         self.pushButton_reinforce.setText(
-            _translate("MainWindow", "Reinforce all edges"))
+            _translate("MainWindow", "Reinforce selected edges"))
+        self.pushButton_select_all.setText(
+            _translate("MainWindow", "Select all"))
 
     def load_rpoly(self):
         self.rpoly = Rpoly_Object()
         self.rpoly.load_rpoly()
-    
+
     def plot_rpoly(self):
         self.rpoly.plot()
         self.expand()
@@ -105,12 +115,22 @@ class Ui_MainWindow(object):
         self.expand()
         self.ply.move(0, 70)
         self.ply.show()
-    
+
     def expand(self):
         MainWindow.resize(1000, 1100)
 
     def open_checkbox(self):
         self.rpoly.create_checkboxes()
+
+    def reinforce_selected(self):
+        # print(self.rpoly.selected_edges)
+        for i in range(len(self.rpoly.x_list)):
+            self.rpoly.selected_edges[i] = self.rpoly.selected_edges[i] + 1
+        GenerateJson(self.rpoly.fileNameNoExt, self.rpoly.selected_edges)
+
+    def select_all(self):
+        self.rpoly.select_all()
+
 
 class Ply_Object(QtWidgets.QWidget):
 
@@ -131,7 +151,7 @@ class Ply_Object(QtWidgets.QWidget):
         vbox.addWidget(self.canvas)
 
     def load_ply(self):
-        
+
         file_path = QtWidgets.QFileDialog.getOpenFileName()
 
         self.number_vertices, self.vertices_list, self.number_face, self.faces_list = open_ply(
@@ -141,24 +161,29 @@ class Ply_Object(QtWidgets.QWidget):
 
     def plot(self):
         for i in range(self.number_face):
-            for j in range(1,self.faces_list[i][0]+1):
+            for j in range(1, self.faces_list[i][0]+1):
                 if j == len(self.faces_list[0])-1:
-                    point1 = self.faces_list[i,j]
-                    point2 = self.faces_list[i,1]
-                else:            
-                    point1 = self.faces_list[i,j]
-                    point2 = self.faces_list[i,j+1]
+                    point1 = self.faces_list[i, j]
+                    point2 = self.faces_list[i, 1]
+                else:
+                    point1 = self.faces_list[i, j]
+                    point2 = self.faces_list[i, j+1]
 
-                xx = [self.vertices_list[point1,0], self.vertices_list[point2,0]]
-                yy = [self.vertices_list[point1,1], self.vertices_list[point2,1]]
-                zz = [self.vertices_list[point1,2], self.vertices_list[point2,2]]
-                self.ax.plot(xx,yy,zz,'r')
+                xx = [self.vertices_list[point1, 0],
+                      self.vertices_list[point2, 0]]
+                yy = [self.vertices_list[point1, 1],
+                      self.vertices_list[point2, 1]]
+                zz = [self.vertices_list[point1, 2],
+                      self.vertices_list[point2, 2]]
+                self.ax.plot(xx, yy, zz, 'r')
 
-
-        self.ax.scatter(self.vertices_list[:,0],self.vertices_list[:,1],self.vertices_list[:,2])
+        self.ax.scatter(
+            self.vertices_list[:, 0], self.vertices_list[:, 1], self.vertices_list[:, 2])
 
         for i in range(self.number_vertices):
-            self.ax.text(self.vertices_list[i,0],self.vertices_list[i,1],self.vertices_list[i,2], s=i)
+            self.ax.text(
+                self.vertices_list[i, 0], self.vertices_list[i, 1], self.vertices_list[i, 2], s=i)
+
 
 class Rpoly_Object(QtWidgets.QWidget):
     def __init__(self):
@@ -179,12 +204,15 @@ class Rpoly_Object(QtWidgets.QWidget):
         vbox.addWidget(self.canvas)
 
     def load_rpoly(self):
-        
+
         file_path = QtWidgets.QFileDialog.getOpenFileName()
 
         self.rpoly_data, _, _ = open_rpoly(
             str(file_path[0]))
-        
+
+        fileName = os.path.basename(file_path[0])
+        fileName = os.path.splitext(fileName)[0]
+        self.fileNameNoExt = str(fileName)
         self.LinePicker()
 
         print('.rpoly opened!')
@@ -241,13 +269,15 @@ class Rpoly_Object(QtWidgets.QWidget):
 
         self.selected_edges_label = QtWidgets.QLabel(MainWindow)
         self.selected_edges_label.move(50, 70)
-        self.selected_edges_label.setText("Selected Edges: " + str(self.selected_edges))
+        self.selected_edges_label.setText(
+            "Selected Edges: " + str(self.selected_edges))
         self.selected_edges_label.adjustSize()
         self.selected_edges_label.show()
 
         for n in range(0, len(self.x_list) - 1):
             x1, y1, z1 = self.x_list[n], self.y_list[n], self.z_list[n]
-            x2, y2, z2 = self.x_list[n + 1], self.y_list[n + 1], self.z_list[n + 1]
+            x2, y2, z2 = self.x_list[n +
+                                     1], self.y_list[n + 1], self.z_list[n + 1]
             self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
                                      linewidth=3, picker=True, label=(n+1))
             self.labels_list.append(str(n + 1))
@@ -275,7 +305,7 @@ class Rpoly_Object(QtWidgets.QWidget):
         self.ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
         self.fig.canvas.mpl_connect('pick_event', self.select_line)
-        
+
     def select_line(self, event):
         # Check selected line
         if isinstance(event.artist, Line2D):
@@ -291,10 +321,10 @@ class Rpoly_Object(QtWidgets.QWidget):
         if self.created_checkboxes == True:
             self.check_boxes.update_checkboxes()
 
-    
     def update_color(self):
         # Update selected edges label
-        self.selected_edges_label.setText("Selected Edges: " + str(self.selected_edges))
+        self.selected_edges_label.setText(
+            "Selected Edges: " + str(self.selected_edges))
         self.selected_edges_label.adjustSize()
 
         # Update color of line
@@ -305,14 +335,32 @@ class Rpoly_Object(QtWidgets.QWidget):
                 (self.lines_list[int(label)][0].set_color('r'))
         self.canvas.draw()
 
+    def select_all(self):
+        """
+        Select all available edges
+        """
+        self.selected_edges = []
+        for i in range(len(self.x_list)):
+            self.selected_edges.append(int(i))
+        # Update color of line
+        print(self.selected_edges)
+        self.update_color()
+        if self.created_checkboxes == True:
+            self.check_boxes.update_checkboxes()
+        
+
     def create_checkboxes(self):
+        """
+        Create checkboxes object
+        """
         self.check_boxes = check_boxes(self)
         self.check_boxes.show()
         self.created_checkboxes = True
 
+
 class check_boxes(QtWidgets.QWidget):
 
-    def __init__(self,rpoly):
+    def __init__(self, rpoly):
         self.rpoly = rpoly
         self.x_list = rpoly.x_list
         self.selected_edges = rpoly.selected_edges
@@ -320,7 +368,7 @@ class check_boxes(QtWidgets.QWidget):
 
         # Setup buttons
         self.setupUI()
-        # Update states according to 
+        # Update states according to
         self.update_checkboxes()
         # Add click function
         for i in range(len(self.x_list)):
@@ -336,7 +384,7 @@ class check_boxes(QtWidgets.QWidget):
         self.box = {}
         self.label_list = []
         for x in self.x_list:
-            self.label = self.x_list.index(x) 
+            self.label = self.x_list.index(x)
             self.label_list.append(self.label)
             self.box[cnt] = QtWidgets.QCheckBox(str(self.label), self)
             self.box[cnt].move(10, i+20)
@@ -350,7 +398,7 @@ class check_boxes(QtWidgets.QWidget):
         cnt = 0
         for x in self.x_list:
             # Make sure click_on_check_box is not called
-            self.box[cnt].blockSignals(True)     
+            self.box[cnt].blockSignals(True)
 
             # Check if al checkboxes are set correctly
             if self.x_list.index(x) in self.selected_edges:
@@ -359,7 +407,7 @@ class check_boxes(QtWidgets.QWidget):
                 self.box[cnt].setChecked(False)
 
             # Turn signals back on
-            self.box[cnt].blockSignals(False)       
+            self.box[cnt].blockSignals(False)
 
             cnt += 1
         self.rpoly.update_color()
@@ -376,7 +424,6 @@ class check_boxes(QtWidgets.QWidget):
         else:
             self.selected_edges.append(selected)
         self.update_checkboxes()
-                     
 
 
 if __name__ == "__main__":
