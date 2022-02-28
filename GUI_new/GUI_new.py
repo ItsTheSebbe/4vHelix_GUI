@@ -1,6 +1,7 @@
 import os
 from signal import pause
 import sys
+from pygments import highlight
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
@@ -34,19 +35,22 @@ class Ui_MainWindow(object):
         self.pushButton_select = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select.setGeometry(QtCore.QRect(450, 20, 90, 40))
         self.pushButton_select.setObjectName("pushButton_select_edge")
+        self.pushButton_select.clicked.connect(self.select)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_reinforce.setGeometry(QtCore.QRect(740, 20, 180, 40))
         self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
+        self.pushButton_reinforce.clicked.connect(self.count)
 
         self.pushButton_select_all = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select_all.setGeometry(QtCore.QRect(550, 20, 90, 40))
         self.pushButton_select_all.setObjectName("pushButton_select_all_edge")
+        self.pushButton_select_all.clicked.connect(self.SelectAll)
 
         self.glViewer = gl.GLViewWidget(self.centralwidget)
         self.glViewer.setGeometry(QtCore.QRect(50, 100, 900, 900))
         self.glViewer.setObjectName("GL_viewer")
-        self.setup_glViewer(self.glViewer)
+        self.setup_glViewer()
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -74,18 +78,30 @@ class Ui_MainWindow(object):
         else:
             self.ply.draw_ply(self.glViewer)
 
-
-    def setup_glViewer(self, glViewer):
-        glViewer.setCameraPosition(distance=10)
+    def setup_glViewer(self):
+        self.glViewer.setCameraPosition(distance=10)
 
         grid = gl.GLGridItem()
         grid.scale(2, 2, 1)
-        glViewer.addItem(grid)
+        self.glViewer.addItem(grid)
+    
+    def select(self):
+        self.ply.HighlightLine(1, self.glViewer)
+
+    def SelectAll(self):
+        self.ply.HighlightAll(self.glViewer)
+    
+    def count(self):
+        self.ply.CountEdges()
 
 
 class Ply_Object(QtWidgets.QWidget):
 
     exists = False
+
+    def __init__(self):
+        self.highlights = np.array([], dtype=gl.GLLinePlotItem)
+        self.selectedEdges = []
 
     def draw_ply(self, glViewer):
         """
@@ -100,9 +116,11 @@ class Ply_Object(QtWidgets.QWidget):
         # Remove previous plot if exists
         if Ply_Object.exists == True:
             self.RemoveObject(glViewer)
+            Ply_Object.exists = False
 
         # Draw new plot
         if loadFlag == True:
+            self.CountEdges()
             self.AddObject(glViewer)
             Ply_Object.exists = True
         else: 
@@ -121,6 +139,70 @@ class Ply_Object(QtWidgets.QWidget):
         Remove old object
         """
         glViewer.removeItem(self.wireframe)
+
+    def CountEdges(self):
+        """
+        Finds number of unique edges in ply
+        """
+        self.edges = []
+        for i in range(self.faceNum):
+            for j in range(len(self.faces[i,:])):
+                if j == len(self.faces[i,:])-1:
+                    point1 = self.faces[i,j]
+                    point2 = self.faces[i,0]
+                else:
+                    point1 = self.faces[i,j]
+                    point2 = self.faces[i,j+1]
+                
+                if ([point1, point2] not in self.edges) and ([point2, point1] not in self.edges):
+                    self.edges.append([point1, point2])
+        
+        self.edgeNum = len(self.edges)
+        self.edges = np.array(self.edges)
+        print(self.edges)
+
+
+    def LoadEdge(self, lineNum):
+        """
+        Returns two points of edge for given line number
+        """
+        id1 = self.edges[lineNum,0]
+        id2 = self.edges[lineNum,1]
+        point1 = (self.vertices[id1,0],self.vertices[id1,1], self.vertices[id1,2])
+        point2 = (self.vertices[id2,0],self.vertices[id2,1], self.vertices[id2,2])   
+        return np.array([point1, point2])
+
+    def HighlightLine(self, lineNum, glViewer):
+        """
+        Highlight specific line
+        """
+        # Load points
+        pts = self.LoadEdge(lineNum)
+       
+        line = gl.GLLinePlotItem(pos=pts, width=10, antialias=False, color=(255,0,0,1))
+        self.highlights = np.append(line, self.highlights)
+        
+        self.selectedEdges.append(lineNum)
+        glViewer.addItem(self.highlights[0])
+        print(self.selectedEdges)
+    
+    def HighlightAll(self, glViewer):
+        """
+        Select all
+        """
+        for i in range(self.edgeNum):
+            pts = self.LoadEdge(i)
+
+            line = gl.GLLinePlotItem(pos=pts, width=10, antialias=False, color=(255,0,0,1))
+            self.highlights = np.append(line, self.highlights)
+            self.selectedEdges.append(i)
+
+        for lineNum in range(self.edgeNum):
+            glViewer.addItem(self.highlights[lineNum])  
+        
+        print(self.selectedEdges)
+        
+
 
 
 if __name__ == "__main__":
