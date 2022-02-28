@@ -108,7 +108,6 @@ class Ui_MainWindow(object):
 
     def load_ply(self):
         self.ply = Ply_Object()
-        self.ply.load_ply()
 
     def plot_ply(self):
         self.ply.plot()
@@ -134,11 +133,15 @@ class Ui_MainWindow(object):
 
 class Ply_Object(QtWidgets.QWidget):
 
+    ply_exists = 0
+
     def __init__(self):
-        QtWidgets.QWidget.__init__(self, MainWindow)
+        self.load_ply()
         self.setupUi()
 
     def setupUi(self):
+        QtWidgets.QWidget.__init__(self, MainWindow)
+
         self.setWindowTitle('Ply Mesh Plot')
         self.resize(1000, 1000)
         self.main_widget = QtWidgets.QWidget()
@@ -214,7 +217,7 @@ class Rpoly_Object(QtWidgets.QWidget):
         fileName = os.path.splitext(fileName)[0]
         self.fileNameNoExt = str(fileName)
         self.LinePicker()
-
+        self.numEdges = len(self.x_list)-1
         print('.rpoly opened!')
 
     def LinePicker(self):
@@ -274,13 +277,13 @@ class Rpoly_Object(QtWidgets.QWidget):
         self.selected_edges_label.adjustSize()
         self.selected_edges_label.show()
 
-        for n in range(0, len(self.x_list) - 1):
+        for n in range(self.numEdges):
             x1, y1, z1 = self.x_list[n], self.y_list[n], self.z_list[n]
             x2, y2, z2 = self.x_list[n +
                                      1], self.y_list[n + 1], self.z_list[n + 1]
             self.line = self.ax.plot([x1, x2], [y1, y2], [z1, z2], marker='o', color='r',
                                      linewidth=3, picker=True, label=(n+1))
-            self.labels_list.append(str(n + 1))
+            self.labels_list.append(str(n))
             self.lines_list.append(self.line)
 
             self.ax.text(x1, y1, z1, s=str(n + 1))
@@ -311,10 +314,11 @@ class Rpoly_Object(QtWidgets.QWidget):
         if isinstance(event.artist, Line2D):
             thisline = event.artist
             label = thisline.get_label()
-            if int(label)-1 in self.selected_edges:
-                self.selected_edges.remove(int(label)-1)
+            label = int(label)-1
+            if label in self.selected_edges:
+                self.selected_edges.remove(label)
             else:
-                self.selected_edges.append(int(label) - 1)
+                self.selected_edges.append(label)
 
         # Update color of line
         self.update_color()
@@ -328,11 +332,11 @@ class Rpoly_Object(QtWidgets.QWidget):
         self.selected_edges_label.adjustSize()
 
         # Update color of line
-        for label in range(len(self.x_list)):
+        for label in range(self.numEdges):
             if label in self.selected_edges:
-                (self.lines_list[int(label)][0].set_color('b'))
+                (self.lines_list[int(label)+1][0].set_color('b'))
             else:
-                (self.lines_list[int(label)][0].set_color('r'))
+                (self.lines_list[int(label)+1][0].set_color('r'))
         self.canvas.draw()
 
     def select_all(self):
@@ -340,7 +344,7 @@ class Rpoly_Object(QtWidgets.QWidget):
         Select all available edges
         """
         self.selected_edges = []
-        for i in range(len(self.x_list)):
+        for i in range(self.numEdges):
             self.selected_edges.append(int(i))
         # Update color of line
         print(self.selected_edges)
