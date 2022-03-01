@@ -38,16 +38,6 @@ def open_rpoly(rpoly_file):
         print('Failed to read the file')
         return data, fwd_helix_connections, rev_helix_connections, loaded_correctly
 
-
-def open_ntrail(ntrail_file):
-
-    with open(ntrail_file, 'r') as f:
-        content = f.read()
-        n_trail_list = content.split()
-    n_trail_list = [int(n) for n in n_trail_list]
-    return n_trail_list
-
-
 def load_ply_data(ply_file):
     vertices_list = []
     faces_list = []
