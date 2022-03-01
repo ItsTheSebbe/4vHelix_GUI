@@ -14,7 +14,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1000, 1100)
+        MainWindow.resize(1100, 1100)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -26,6 +26,7 @@ class Ui_MainWindow(object):
         self.pushButton_plot = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_plot.setGeometry(QtCore.QRect(110, 20, 90, 40))
         self.pushButton_plot.setObjectName("pushButton_plot")
+        self.pushButton_plot.clicked.connect(self.checkbox)
 
         self.pushButton_openply = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_openply.setGeometry(QtCore.QRect(230, 20, 90, 40))
@@ -86,21 +87,83 @@ class Ui_MainWindow(object):
         self.glViewer.addItem(grid)
     
     def select(self):
-        self.ply.HighlightLine(1, self.glViewer)
-
+        self.check_boxes = check_boxes(self.centralwidget, self.ply.edgeNum, self.ply.selectedEdges, self.ply, self.glViewer)
+        self.check_boxes.show()
     def SelectAll(self):
         self.ply.HighlightAll(self.glViewer)
     
     def count(self):
         self.ply.CountEdges()
 
+    def checkbox(self):
+        print("test")
+
+
+class check_boxes(QtWidgets.QWidget):
+    def __init__(self, mainWindow, edgeNum, edges, ply, glViewer):
+        self.edgeNum = edgeNum
+        self.selected_edges = edges
+        self.ply = ply
+        self.glViewer = glViewer
+        QtWidgets.QCheckBox.__init__(self, mainWindow)
+        # print(self.selected_edges)
+        # Setup buttons
+        self.setupUI()
+        # Update states according to
+        self.update_checkboxes()
+
+    def setupUI(self):
+        """
+        Set up of check box UI.
+        """
+        vertPos = 0
+        cnt = 0
+        self.box = {}
+        for i in range(self.edgeNum):
+            self.box[cnt] = QtWidgets.QCheckBox(str(i), self)
+            self.box[cnt].move(1000, vertPos+100)
+            self.box[i].stateChanged.connect(self.click_on_check_box)
+            vertPos += 20
+            cnt += 1
+
+    def update_checkboxes(self):
+        """
+        Updates check boxes and corresponding line colors
+        """
+        for i in range(self.edgeNum):
+            # Make sure click_on_check_box is not called
+            self.box[i].blockSignals(True)
+
+            # Check if al checkboxes are set correctly
+            if i in self.selected_edges:
+                self.box[i].setChecked(True)
+            else:
+                self.box[i].setChecked(False)
+
+            # Turn signals back on
+            self.box[i].blockSignals(False)
+
+        self.ply.UpdateHighlight(self.glViewer)
+        print(str(self.selected_edges))
+
+    def click_on_check_box(self):
+        """
+        Add/remove selected edges
+        """
+        checkBox = self.sender()
+        selected = int(checkBox.text())
+        if selected in self.selected_edges:
+            self.selected_edges.remove(selected)
+        else:
+            self.selected_edges.append(selected)
+        self.update_checkboxes()
+        self.ply.UpdateHighlight(self.glViewer)
 
 class Ply_Object(QtWidgets.QWidget):
 
     exists = False
 
     def __init__(self):
-        self.highlights = np.array([], dtype=gl.GLLinePlotItem)
         self.selectedEdges = []
 
     def draw_ply(self, glViewer):
@@ -115,18 +178,18 @@ class Ply_Object(QtWidgets.QWidget):
         
         # Remove previous plot if exists
         if Ply_Object.exists == True:
-            self.RemoveObject(glViewer)
+            self.ClearScreen(glViewer)
             Ply_Object.exists = False
 
         # Draw new plot
         if loadFlag == True:
             self.CountEdges()
-            self.AddObject(glViewer)
+            self.PlotPly(glViewer)
             Ply_Object.exists = True
         else: 
             print("Unable to load .ply file!")
 
-    def AddObject(self, glViewer):
+    def PlotPly(self, glViewer):
         """
         Draw new object.
         """
@@ -134,12 +197,17 @@ class Ply_Object(QtWidgets.QWidget):
                                        smooth=False, drawEdges=True, drawFaces=False, edgeColor=(1, 1, 1, 1))
         glViewer.addItem(self.wireframe)
 
-    def RemoveObject(self, glViewer):
+    def ClearScreen(self, glViewer):
         """
         Remove old object
         """
         glViewer.removeItem(self.wireframe)
+        for i in range(self.edgeNum):
+            self.selectedEdges.append(i)
+            glViewer.removeItem(self.highlights[i])
 
+        self.highlights = np.array([], dtype=gl.GLLinePlotItem)
+    
     def CountEdges(self):
         """
         Finds number of unique edges in ply
@@ -159,7 +227,8 @@ class Ply_Object(QtWidgets.QWidget):
         
         self.edgeNum = len(self.edges)
         self.edges = np.array(self.edges)
-        print(self.edges)
+        self.highlights = np.zeros(self.edgeNum, dtype=gl.GLLinePlotItem)
+        print(self.highlights)
 
 
     def LoadEdge(self, lineNum):
@@ -172,7 +241,21 @@ class Ply_Object(QtWidgets.QWidget):
         point2 = (self.vertices[id2,0],self.vertices[id2,1], self.vertices[id2,2])   
         return np.array([point1, point2])
 
-    def HighlightLine(self, lineNum, glViewer):
+    def UpdateHighlight(self, glViewer):
+        for i in range(self.edgeNum):
+            if i in self.selectedEdges and self.highlights[i] == 0:
+                self.AddHighlight(i, glViewer)
+            elif i not in self.selectedEdges and self.highlights[i] != 0:
+                self.RemoveHighlight(i, glViewer)
+
+    def RemoveHighlight(self, lineNum, glViewer):
+        """
+        Remove highlight of specific line
+        """
+        glViewer.removeItem(self.highlights[lineNum])
+        self.highlights[lineNum] = 0
+
+    def AddHighlight(self, lineNum, glViewer):
         """
         Highlight specific line
         """
@@ -180,11 +263,9 @@ class Ply_Object(QtWidgets.QWidget):
         pts = self.LoadEdge(lineNum)
        
         line = gl.GLLinePlotItem(pos=pts, width=10, antialias=False, color=(255,0,0,1))
-        self.highlights = np.append(line, self.highlights)
+        self.highlights[lineNum] = line
         
-        self.selectedEdges.append(lineNum)
-        glViewer.addItem(self.highlights[0])
-        print(self.selectedEdges)
+        glViewer.addItem(self.highlights[lineNum])
     
     def HighlightAll(self, glViewer):
         """
@@ -201,10 +282,9 @@ class Ply_Object(QtWidgets.QWidget):
             glViewer.addItem(self.highlights[lineNum])  
         
         print(self.selectedEdges)
-        
+    
 
-
-
+      
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
