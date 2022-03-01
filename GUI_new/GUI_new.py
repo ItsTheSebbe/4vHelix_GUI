@@ -22,11 +22,12 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(10, 20, 90, 40))
         self.pushButton.setObjectName("pushButton_open_file")
+        self.pushButton.clicked.connect(self.OpenRpoly)
 
         self.pushButton_plot = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_plot.setGeometry(QtCore.QRect(110, 20, 90, 40))
         self.pushButton_plot.setObjectName("pushButton_plot")
-        self.pushButton_plot.clicked.connect(self.checkbox)
+        self.pushButton_plot.clicked.connect(self.PlotRpoly)
 
         self.pushButton_openply = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_openply.setGeometry(QtCore.QRect(230, 20, 90, 40))
@@ -38,16 +39,17 @@ class Ui_MainWindow(object):
         self.pushButton_select.setObjectName("pushButton_select_edge")
         self.pushButton_select.clicked.connect(self.select)
 
-        self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_reinforce.setGeometry(QtCore.QRect(740, 20, 180, 40))
-        self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
-        self.pushButton_reinforce.clicked.connect(self.count)
 
         self.pushButton_select_all = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select_all.setGeometry(QtCore.QRect(550, 20, 90, 40))
         self.pushButton_select_all.setObjectName("pushButton_select_all_edge")
         self.pushButton_select_all.clicked.connect(self.SelectAll)
 
+        self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_reinforce.setGeometry(QtCore.QRect(740, 20, 180, 40))
+        self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
+        self.pushButton_reinforce.clicked.connect(self.Reinforce)
+        
         self.glViewer = gl.GLViewWidget(self.centralwidget)
         self.glViewer.setGeometry(QtCore.QRect(50, 100, 900, 900))
         self.glViewer.setObjectName("GL_viewer")
@@ -92,11 +94,14 @@ class Ui_MainWindow(object):
     def SelectAll(self):
         self.ply.HighlightAll(self.glViewer)
     
-    def count(self):
-        self.ply.CountEdges()
+    def Reinforce(self):
+        print("Reinforce placeholder")
 
-    def checkbox(self):
-        print("test")
+    def PlotRpoly(self):
+        print("plot rpoly placeholder")
+
+    def OpenRpoly(self):
+        print("open rpoly placeholder")
 
 
 class check_boxes(QtWidgets.QWidget):
@@ -203,9 +208,9 @@ class Ply_Object(QtWidgets.QWidget):
         """
         glViewer.removeItem(self.wireframe)
         for i in range(self.edgeNum):
-            self.selectedEdges.append(i)
-            glViewer.removeItem(self.highlights[i])
-
+            if i in self.selectedEdges:
+                glViewer.removeItem(self.highlights[i])
+                self.selectedEdges.remove(i)
         self.highlights = np.array([], dtype=gl.GLLinePlotItem)
     
     def CountEdges(self):
