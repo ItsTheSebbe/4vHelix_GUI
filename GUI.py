@@ -201,12 +201,13 @@ class Ui_MainWindow(object):
 
         if Rpoly_Object.plotted == True:
             # To account for offset in 4vhelixauto_2
+            selectedEdgesOffset = self.rpoly.selectedEdges.copy()
             for i in range(self.rpoly.edgeNum):
-                self.rpoly.selectedEdges[i] = self.rpoly.selectedEdges[i] + 1
+                selectedEdgesOffset[i] = selectedEdgesOffset[i] + 1
             
             # faces_list = self.ply.faces.tolist()
             # print(self.rpoly.selectedEdges)
-            GenerateJson(self.rpoly.fileNameNoExt, self.rpoly.selectedEdges, self.rpoly.rpoly_data,
+            GenerateJson(self.rpoly.fileNameNoExt, selectedEdgesOffset, self.rpoly.rpoly_data,
                          self.rpoly.fwd_helix_connections, self.rpoly.rev_helix_connections, self.ntrail.n_trail_list, self.ply.faces_full)
         else:
             print("Please plot rpoly file and select edges.")
