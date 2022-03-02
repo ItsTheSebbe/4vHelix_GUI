@@ -1,0 +1,42 @@
+# Relaxation of original C:\Users\marco\OneDrive\Desktop\Computer_Marco\BSCORqt\octahedron.ply file. 12 helices.
+# Total separation: Initial: min: 0.521538, max: 10.0916, average: 3.7569, total: 90.1656 nm, final: min: 0.0153491, max: 0.552522, average: 0.222468, total: 5.33923 nm
+hb helix_1 158 18.9447 -0.0941763 -18.9824 0.923778 -0.011222 -0.38273 0.00515268
+hb helix_2 153 0.132052 -19.0322 -18.9677 0.0237103 0.386867 -0.918877 0.0737384
+hb helix_3 158 -18.9745 -19.0075 -0.0402696 -0.377053 -0.598309 -0.15768 0.689198
+hb helix_4 152 -19.0126 0.121827 -19.0044 0.777634 0.494679 0.325303 0.211554
+hb helix_5 158 -0.0896313 18.9361 -18.9978 -0.259902 0.280874 0.677328 0.628322
+hb helix_6 152 -19.094 18.9655 -0.0743199 -0.131872 -0.704162 0.573427 0.397426
+hb helix_7 158 -19.0266 0.060814 19.0281 -0.185634 0.333151 -0.450076 0.807454
+hb helix_8 152 0.0811936 19.0359 19.1026 -0.762087 0.524583 0.224799 0.305782
+hb helix_9 158 18.9758 18.9754 0.0791677 0.653373 0.268601 0.273517 0.652798
+hb helix_10 152 19 0.0924605 19.0049 0.158537 -0.34541 -0.404147 0.831999
+hb helix_11 158 0.0388865 -19.0244 18.9673 0.190226 0.902994 -0.377044 0.0790793
+hb helix_12 152 19.0016 -19.0819 -0.110055 0.0294128 0.70137 0.52959 0.476183
+
+c helix_1 f3' helix_2 f5'
+c helix_5 b3' helix_1 b5'
+c helix_2 f3' helix_3 f5'
+c helix_12 b3' helix_2 b5'
+c helix_3 f3' helix_4 f5'
+c helix_7 b3' helix_3 b5'
+c helix_4 f3' helix_5 f5'
+c helix_2 b3' helix_4 b5'
+c helix_5 f3' helix_6 f5'
+c helix_9 b3' helix_5 b5'
+c helix_6 f3' helix_7 f5'
+c helix_4 b3' helix_6 b5'
+c helix_7 f3' helix_8 f5'
+c helix_11 b3' helix_7 b5'
+c helix_8 f3' helix_9 f5'
+c helix_6 b3' helix_8 b5'
+c helix_9 f3' helix_10 f5'
+c helix_1 b3' helix_9 b5'
+c helix_10 f3' helix_11 f5'
+c helix_8 b3' helix_10 b5'
+c helix_11 f3' helix_12 f5'
+c helix_3 b3' helix_11 b5'
+c helix_12 f3' helix_1 f5'
+c helix_10 b3' helix_12 b5'
+
+autostaple
+ps helix_1 f3'

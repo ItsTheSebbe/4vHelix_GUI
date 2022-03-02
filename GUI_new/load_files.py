@@ -4,7 +4,6 @@ import numpy as np
 
 def open_rpoly(rpoly_file):
 
-    polyFile = open(rpoly_file, 'r')
 
     # Matrix 'data' stores helix coordinates
     data = []
@@ -15,6 +14,7 @@ def open_rpoly(rpoly_file):
     count = 0
 
     try:
+        polyFile = open(rpoly_file, 'r')
         for line in polyFile:
             if line.startswith('hb'):
                 data.insert(count, line.split(' '))

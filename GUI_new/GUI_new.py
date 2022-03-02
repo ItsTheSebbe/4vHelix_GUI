@@ -27,9 +27,9 @@ class Ui_MainWindow(object):
         self.pushButton.clicked.connect(self.OpenRpoly)
 
         self.pushButton_openply = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_openply.setGeometry(QtCore.QRect(230, 20, 90, 40))
+        self.pushButton_openply.setGeometry(QtCore.QRect(110, 20, 90, 40))
         self.pushButton_openply.setObjectName("pushButton_load_ply")
-        self.pushButton_openply.clicked.connect(self.load_ply)
+        self.pushButton_openply.clicked.connect(self.OpenPly)
 
         self.pushButton_select_all = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_select_all.setGeometry(QtCore.QRect(350, 20, 90, 40))
@@ -56,7 +56,7 @@ class Ui_MainWindow(object):
         self.glViewer = gl.GLViewWidget(self.centralwidget)
         self.glViewer.setGeometry(QtCore.QRect(50, 100, 900, 900))
         self.glViewer.setObjectName("GL_viewer")
-        self.setup_glViewer()
+        self.SetupGLViewer()
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -75,25 +75,48 @@ class Ui_MainWindow(object):
         self.pushButton_deselect_all.setText(
             _translate("MainWindow", "Deselect all"))
 
-    def load_ply(self):
+    def OpenPly(self):
         """
         Load and plot ply file.
         """
-        
+        self.ClearScreen()
+        self.CreateNewGrid(2, 4)
+
         if Ply_Object.exists == False:
             self.ply = Ply_Object(self.glViewer)  # Create new instance of Ply object
             self.ply.draw_ply()
         else:
             self.ply.draw_ply()
 
-    def setup_glViewer(self):
+
+    def OpenRpoly(self):
+        """
+        Load and plot Rpoly file.
+        """
+        self.ClearScreen()
+        self.CreateNewGrid(10, 80)
+
+        if Rpoly_Object.exists == False:
+            self.rpoly = Rpoly_Object(self.glViewer)  # Create new instance of Ply object
+            self.rpoly.draw_rpoly()
+        else:
+            self.rpoly.draw_rpoly()
+
+    def CreateNewGrid(self, scale, distance):
+        self.glViewer.removeItem(self.grid)
+        self.glViewer.setCameraPosition(distance=distance)
+        self.grid = gl.GLGridItem()
+        self.grid.scale(scale, scale, 5)
+        self.glViewer.addItem(self.grid)
+
+    def SetupGLViewer(self):
         """
         Set up initial condition of glviewer
         """
         self.glViewer.setCameraPosition(distance=10)
-        grid = gl.GLGridItem()
-        grid.scale(2, 2, 1)
-        self.glViewer.addItem(grid)
+        self.grid = gl.GLGridItem()
+        self.grid.scale(2, 2, 1)
+        self.glViewer.addItem(self.grid)
 
     def AddAllHighlight(self):
         """
@@ -101,6 +124,8 @@ class Ui_MainWindow(object):
         """
         if Ply_Object.exists == True:
             self.ply.AddAllHighlight()
+        elif Rpoly_Object.exists == True:
+            self.rpoly.AddAllHighlight()
         else:
             print("No file selected!")
 
@@ -110,6 +135,8 @@ class Ui_MainWindow(object):
         """
         if Ply_Object.exists == True:
             self.ply.RemoveAllHighlight()
+        elif Rpoly_Object.exists == True:
+            self.rpoly.RemoveAllHighlight()
         else:
             print("No file selected!")
 
@@ -119,13 +146,17 @@ class Ui_MainWindow(object):
     def Reinforce(self):
         print("Reinforce placeholder")
 
+    def ClearScreen(self):
+        # Clear ply
+        if Ply_Object.exists == True:
+            self.ply.ClearScreen()
+            Ply_Object.exists = False
 
-    def OpenRpoly(self):
-        if Rpoly_Object.exists == False:
-            self.ply = Rpoly_Object(self.glViewer)  # Create new instance of Ply object
-            self.ply.draw_rpoly()
-        else:
-            self.ply.draw_rpoly()
+        # Clear rpoly
+        if Rpoly_Object.exists == True:
+            self.rpoly.ClearScreen()
+            Rpoly_Object.exists = False
+
 
 
 class check_boxes(QtWidgets.QWidget):
@@ -216,10 +247,6 @@ class Ply_Object(QtWidgets.QWidget):
         self.vertNum, self.vertices, self.faceNum, self.faces, loadFlag = open_ply(
             str(file_path[0]))
 
-        # Remove previous plot if exists
-        if Ply_Object.exists == True:
-            self.ClearScreen()
-            Ply_Object.exists = False
 
         # Draw new plot
         if loadFlag == True:
@@ -371,55 +398,42 @@ class Rpoly_Object(QtWidgets.QWidget):
         """
         # Get file path
         file_path = QtWidgets.QFileDialog.getOpenFileName()
-
         self.rpoly_data, _, _, loadFlag = open_rpoly(
             str(file_path[0]))
 
-        print('.rpoly opened!')
-
-        # Remove previous plot if exists
-        if Ply_Object.exists == True:
-            self.ClearScreen()
-            Ply_Object.exists = False
 
         # Draw new plot
         if loadFlag == True:
             self.CreatePointList()
             # self.CountEdges()
             self.plot()
-            Ply_Object.exists = True
+            Rpoly_Object.exists = True
 
             self.check_boxes = check_boxes(self)
-        else:
+        else:   
             print("Unable to load .rpoly file!")
 
 
 
     def plot(self):
+        self.selected_edges = []
         self.highlights = np.zeros(self.edgeNum, dtype=gl.GLLinePlotItem)
         self.wireframe = np.zeros(self.edgeNum, dtype=gl.GLLinePlotItem)
         for n in range(self.edgeNum):
-            x1, y1, z1 = self.x_list[n], self.y_list[n], self.z_list[n]
-            x2, y2, z2 = self.x_list[n +
-                                     1], self.y_list[n + 1], self.z_list[n + 1]
-            p1 = (x1, y1, z1)
-            p2 = (x2, y2, z2)
-            pts = np.array([p1, p2])
-            print(pts)
+            pts = self.LoadEdge(n)
 
             line = gl.GLLinePlotItem(
                 pos=pts, width=1, antialias=False, color=(255, 255, 255, 1))
             self.wireframe[n] = line
             self.glViewer.addItem(self.wireframe[n])
-
+        
 
     def CreatePointList(self):
-        self.selected_edges = []
         position_list = []
         generator = cu.StrandGenerator()
 
         new_position_list = []
-        self.x_list, self.y_list, self.z_list = [], [], []
+        x_list, y_list, z_list = [], [], []
         scaffold_fragments = base.System([100, 100, 100])
 
         for n, i in enumerate(self.rpoly_data):
@@ -455,11 +469,17 @@ class Rpoly_Object(QtWidgets.QWidget):
                 base_coord = sequence.split(' ')
                 base_coord_list.append(base_coord)
 
-            self.x_list.append(float(base_coord_list[0][0]))
-            self.y_list.append(float(base_coord_list[0][1]))
-            self.z_list.append(float(base_coord_list[0][2]))
+            x_list.append(float(base_coord_list[0][0]))
+            y_list.append(float(base_coord_list[0][1]))
+            z_list.append(float(base_coord_list[0][2]))
+            self.edgeNum = len(x_list)
 
-            self.edgeNum = len(self.x_list)-1
+        self.vertices = np.empty((self.edgeNum, 3))
+
+        for i in range(self.edgeNum):
+            self.vertices[i,0] = x_list[i]
+            self.vertices[i,1] = y_list[i]
+            self.vertices[i,2] = z_list[i]
 
 
     def ClearScreen(self):
@@ -468,7 +488,9 @@ class Rpoly_Object(QtWidgets.QWidget):
         """
 
         # Remove wireframe
-        self.glViewer.removeItem(self.wireframe)
+        for lineNum in range(self.edgeNum):
+            self.glViewer.removeItem(self.wireframe[lineNum])
+            self.wireframe[lineNum] = 0
 
         # Remove highlights
         self.RemoveAllHighlight()
@@ -481,8 +503,12 @@ class Rpoly_Object(QtWidgets.QWidget):
         """
         Returns two vertices of edge for given line number.
         """
-        id1 = self.edges[lineNum, 0]
-        id2 = self.edges[lineNum, 1]
+        if lineNum == self.edgeNum-1:
+            id1 = lineNum
+            id2 = 0
+        else:
+            id1 = lineNum
+            id2 = lineNum + 1
         point1 = (self.vertices[id1, 0],
                   self.vertices[id1, 1], self.vertices[id1, 2])
         point2 = (self.vertices[id2, 0],

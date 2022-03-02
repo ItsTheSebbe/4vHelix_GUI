@@ -265,6 +265,8 @@ class Rpoly_Object(QtWidgets.QWidget):
             self.x_list.append(float(base_coord_list[0][0]))
             self.y_list.append(float(base_coord_list[0][1]))
             self.z_list.append(float(base_coord_list[0][2]))
+        
+        print(len(self.x_list))
 
     def plot(self):
         self.lines_list = []
