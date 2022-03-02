@@ -10,74 +10,8 @@ from virtual_scaffold import save_workbook
 import numpy as np
 from tacoxDNA.src.libs import cadnano_utils as cu
 from collections import Counter
+from load_files import open_ply, open_rpoly, open_ntrail
 
-
-def open_rpoly(rpoly_file):
-
-    polyFile = open(rpoly_file, 'r')
-
-    # Matrix 'data' stores helix coordinates
-    data = []
-    # fwd_helix_connections and rev_helix_connections: number rows is amount of helices,
-    # every row stores oligo connections
-    fwd_helix_connections = []
-    rev_helix_connections = []
-    count = 0
-
-    try:
-        for line in polyFile:
-            if line.startswith('hb'):
-                data.insert(count, line.split(' '))
-                count += 1
-            elif line.startswith('c'):
-                if 'f3' not in line:
-                    # rev_helix_connections.append(line.split(' '))
-                    rev_helix_connections.append([int(re.search('c helix_(.+?) ',
-                                                                line).group(1)),
-                                                  int(re.search('\' helix_(.+?) ', line).group(1))])
-                else:
-                    fwd_helix_connections.append([int(re.search('c helix_(.+?) ',
-                                                                line).group(1)),
-                                                  int(re.search('\' helix_(.+?) ', line).group(1))])
-    except Exception:
-        print('Failed to read the file' )
-
-    return data, fwd_helix_connections, rev_helix_connections
-
-def open_ntrail(ntrail_file):
-
-    with open(ntrail_file, 'r') as f:
-        content= f.read()
-        n_trail_list=content.split()
-    n_trail_list = [int(n) for n in n_trail_list]
-    return n_trail_list
-
-def open_ply(ply_file):
-
-    number_vertices = 0
-    i=0
-
-    with open(ply_file, 'r') as f:
-        content = f.read()
-        content=re.split('\n',content)
-    for line in content:
-        if "element vertex" in line:
-            number_vertices = [int(s) for s in line.split() if s.isdigit()]
-        if "end_header" in line:
-            i+=1
-            break
-        else:
-            i+=1
-
-    faces_list = []
-    for line in content[(i+number_vertices[0]):-1]:
-        line = [int(s) for s in line.split() if s.isdigit()]
-        faces_list.append((line))
-        if int(line[0]) != 3:
-            #print(line)
-            print("Presence of non triangulated faces detected. The script might not work properly.")
-
-    return faces_list
 
 def unit_vector(vector):  #from here https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
     """ Returns the unit vector of the vector.  """
@@ -1785,10 +1719,9 @@ def deletions_number(bundles, edge):
 
     return del_number
 
-def GenerateJson(filenameInput, to_reinforce):
-    data, fwd_helix_connections, rev_helix_connections = open_rpoly(filenameInput + ".rpoly")
-    n_trail_list = open_ntrail(filenameInput + ".ntrail")
-    faces_list = open_ply(filenameInput + ".ply")
+def GenerateJson(filenameInput, to_reinforce, data, fwd_helix_connections, rev_helix_connections, n_trail_list, faces_list):
+
+
 
     double_vertices = False
 
@@ -1845,8 +1778,15 @@ def GenerateJson(filenameInput, to_reinforce):
 
     save_workbook(edges_number, bundles, filename_excel, deletions_list, double_vertices, faces_to_edges_list, to_reinforce, double_edges)
 
-if __name__ == "__main__":
 
-    filenameInput = "triple_hex_flat_1"
-    to_reinforce = [x for x in range (1, 38)]
-    GenerateJson(filenameInput, to_reinforce)
+# if __name__ == "__main__":
+#     filenameInput = "triple_hex_flat_1" 
+#     to_reinforce = [x for x in range (1, 39)]
+#     # data, fwd_helix_connections, rev_helix_connections, flag = open_rpoly(filenameInput + ".rpoly")
+#     # n_trail_list, flag = open_ntrail(filenameInput + ".ntrail")
+#     _,_,_,faces_list, faces_list_full, flag = open_ply(filenameInput + ".ply")
+
+#     print(faces_list)
+#     print()
+#     print(faces_list_full)
+#     # GenerateJson(filenameInput, to_reinforce, data, fwd_helix_connections, rev_helix_connections, n_trail_list, faces_list)
