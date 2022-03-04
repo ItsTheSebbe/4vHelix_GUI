@@ -2,6 +2,7 @@ import os
 import sys
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
+from PyQt5.QtWidgets import *
 import pyqtgraph.opengl as gl
 import numpy as np
 
@@ -72,7 +73,8 @@ class Ui_MainWindow(object):
         self.pushButton_seq_designer.setGeometry(
             QtCore.QRect(850, 20, 180, 40))
         self.pushButton_seq_designer.setObjectName("pushButton_seq_designer")
-        self.pushButton_seq_designer.clicked.connect(self.RunSequenceDesigner)
+        self.pushButton_seq_designer.clicked.connect(self.OpenScaffold)
+        self.generatedJson = False
 
         self.glViewer = gl.GLViewWidget(self.centralwidget)
         self.glViewer.setGeometry(QtCore.QRect(50, 150, 800, 800))
@@ -104,46 +106,66 @@ class Ui_MainWindow(object):
 
     def OpenPly(self):
         """
-        Load and plot ply file.
+        Load ply file.
         """
+
         if Ply_Object.exists == False:
             # Create new instance of Ply object
             self.ply = Ply_Object(self.glViewer)
             self.ply.OpenPly()
+
+            # Plot if window is clear
+            if Rpoly_Object.plotted == False:
+                self.ply.PlotPly()
         else:
             self.ply.OpenPly()
 
     def PlotPly(self):
-        self.CreateNewGrid(2, 4)
+        """
+        Plots ply file to window
+        """
         self.ClearScreen()
         if Ply_Object.exists == True:
+            self.CreateNewGrid(2, 4)
             self.ply.PlotPly()
         else:
             print("Please open a ply file!")
 
+
     def OpenRpoly(self):
         """
-        Load and plot Rpoly file.
+        Load Rpoly file.
         """
         if Rpoly_Object.exists == False:
-            # Create new instance of Ply object
+
+            # Create new instance of Rpoly object
             self.rpoly = Rpoly_Object(self.glViewer)
             self.rpoly.OpenRpoly()
             self.generatedJson = False
+
+            # Plot if window is clear
+            if Ply_Object.plotted == False:
+                self.rpoly.PlotRpoly()
         else:
             self.rpoly.OpenRpoly()
             self.generatedJson = False
 
 
     def PlotRpoly(self):
-        self.CreateNewGrid(10, 80)
+        """
+        Plot rpoly file to window
+        """
         self.ClearScreen()
         if Rpoly_Object.exists == True:
+            self.CreateNewGrid(10, 80)
             self.rpoly.PlotRpoly()
         else:
             print("Please open an rpoly file!")
 
     def OpenNtrail(self):
+        """
+        Load ntrail file
+        """
         if Ntrail.exists == False:
             # Create new instance of Ply object
             self.ntrail = Ntrail()
@@ -152,6 +174,9 @@ class Ui_MainWindow(object):
             self.ntrail.OpenNtrail()
 
     def CreateNewGrid(self, scale, distance):
+        """
+        Regenerate grid lines in plotting window
+        """
         self.glViewer.removeItem(self.grid)
         self.glViewer.setCameraPosition(distance=distance)
         self.grid = gl.GLGridItem()
@@ -189,19 +214,31 @@ class Ui_MainWindow(object):
         else:
             print("No file selected!")
 
-    def RunSequenceDesigner(self):
-        if self.generatedJson == True:
-            selectedScaffold = "scaffold_files/M13mp18"
-            dirName = str(self.rpoly.fileNameNoExt)
-            fileName = str(self.rpoly.fileNameNoExt) + ".json"
-            jsonPath = os.path.join(dirName, fileName)
-            seq_designer(jsonPath, selectedScaffold)
+    def RunSequenceDesigner(self, selectedScaffold):
+        """
+        Call seq_designer 
+        """
+        dirName = str(self.rpoly.fileNameNoExt)
+        fileName = str(self.rpoly.fileNameNoExt) + ".json"
+        jsonPath = os.path.join(dirName, fileName)
+        seq_designer(jsonPath, selectedScaffold)
 
+
+    def OpenScaffold(self):
+        """
+        Open up scaffold selection prompt
+        """
+        if self.generatedJson == True:
+            dirName = 'scaffold_files'
+            self.windoww = ScaffoldSelectWindow(dirName, self)
+            self.windoww.show()
         else:
             print("Please reinforce edges first!")
-        
 
     def Reinforce(self):
+        """
+        Call vHelix_auto_2 for edge reinforcement. This will generate a json file to be used by seq designer
+        """
         if Rpoly_Object.exists == False:
             print("Please open Rpoly file!")
             return
@@ -235,6 +272,38 @@ class Ui_MainWindow(object):
         if Rpoly_Object.plotted == True:
             self.rpoly.ClearScreen()
 
+class ScaffoldSelectWindow(QWidget):
+    def __init__(self, dirName, mainWindow):
+        QWidget.__init__(self)
+        layout = QGridLayout()
+        self.setLayout(layout)
+        scaffoldNames = os.listdir(dirName)
+
+        for i in range(len(scaffoldNames)):
+            radiobutton = QRadioButton(scaffoldNames[i])
+            radiobutton.name = scaffoldNames[i]
+            radiobutton.toggled.connect(self.onClicked)
+            layout.addWidget(radiobutton, i, 0)
+
+            if radiobutton.name == "M13mp18":
+                radiobutton.setChecked(True)
+                self.currentSelect = radiobutton.name
+
+        pushButton = QPushButton("Select scaffold")
+        layout.addWidget(pushButton, 0,1)
+        pushButton.clicked.connect(lambda: self.closeWindow(self, mainWindow, dirName))
+
+    def onClicked(self):
+        radioButton = self.sender()
+        self.currentSelect = radioButton.name
+        if radioButton.isChecked():
+            print("Currently Selected scaffold is %s" % (self.currentSelect))
+
+    def closeWindow(self, window, mainWindow, dirName):
+        print("You selected %s" % (self.currentSelect))
+        window.close()
+        self.selectedScaffold = os.path.join(dirName, self.currentSelect)
+        mainWindow.RunSequenceDesigner(self.selectedScaffold)
 
 class check_boxes(QtWidgets.QWidget):
     exists = False

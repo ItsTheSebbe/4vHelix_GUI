@@ -1,8 +1,15 @@
 import re
 import numpy as np
+import os 
 
 def open_ntrail(ntrail_file):
     try:
+        fileNameNoPath = os.path.basename(ntrail_file)
+        fileNameNoExt, fileExt = os.path.splitext(fileNameNoPath)
+        
+        if fileExt != ".ntrail":
+            raise Exception
+        
         with open(ntrail_file, 'r') as f:
             content= f.read()
             n_trail_list=content.split()
@@ -11,9 +18,11 @@ def open_ntrail(ntrail_file):
         return n_trail_list, loaded_correctly
     except Exception:
         loaded_correctly = False
-        print('Failed to read the file')
         n_trail_list = []
+        print('Failed to read the file')
         return n_trail_list, loaded_correctly
+
+
         
 
 def open_rpoly(rpoly_file):
@@ -28,6 +37,12 @@ def open_rpoly(rpoly_file):
     count = 0
 
     try:
+        fileNameNoPath = os.path.basename(rpoly_file)
+        fileNameNoExt, fileExt = os.path.splitext(fileNameNoPath)
+        
+        if fileExt != ".rpoly":
+            raise Exception
+
         polyFile = open(rpoly_file, 'r')
         for line in polyFile:
             if line.startswith('hb'):
@@ -95,6 +110,12 @@ def load_ply_data(ply_file):
 
 def open_ply(ply_file):
     try:
+        fileNameNoPath = os.path.basename(ply_file)
+        fileNameNoExt, fileExt = os.path.splitext(fileNameNoPath)
+        
+        if fileExt != ".ply":
+            raise Exception
+            
         vertNum, vertices, faceNum, faces, faces_full = load_ply_data(ply_file)
         loaded_correctly = True
         return vertNum, vertices, faceNum, faces, faces_full, loaded_correctly
