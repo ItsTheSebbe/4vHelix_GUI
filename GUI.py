@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1100, 1100)
+        MainWindow.resize(1000, 1100)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -64,14 +64,14 @@ class Ui_MainWindow(object):
         self.pushButton_deselect_all.clicked.connect(self.DeselectAll)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_reinforce.setGeometry(QtCore.QRect(650, 20, 180, 40))
+        self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 180, 40))
         self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
         self.pushButton_reinforce.clicked.connect(self.Reinforce)
 
         self.pushButton_seq_designer = QtWidgets.QPushButton(
             self.centralwidget)
         self.pushButton_seq_designer.setGeometry(
-            QtCore.QRect(850, 20, 180, 40))
+            QtCore.QRect(800, 20, 180, 40))
         self.pushButton_seq_designer.setObjectName("pushButton_seq_designer")
         self.pushButton_seq_designer.clicked.connect(self.OpenScaffold)
         self.generatedJson = False
@@ -132,7 +132,6 @@ class Ui_MainWindow(object):
         else:
             print("Please open a ply file!")
 
-
     def OpenRpoly(self):
         """
         Load Rpoly file.
@@ -151,7 +150,6 @@ class Ui_MainWindow(object):
         else:
             self.rpoly.OpenRpoly()
             self.generatedJson = False
-
 
     def PlotRpoly(self):
         """
@@ -225,7 +223,6 @@ class Ui_MainWindow(object):
         jsonPath = os.path.join(dirName, fileName)
         seq_designer(jsonPath, selectedScaffold)
 
-
     def OpenScaffold(self):
         """
         Open up scaffold selection prompt
@@ -274,6 +271,7 @@ class Ui_MainWindow(object):
         if Rpoly_Object.plotted == True:
             self.rpoly.ClearScreen()
 
+
 class ScaffoldSelectWindow(QWidget):
     def __init__(self, dirName, mainWindow):
         QWidget.__init__(self)
@@ -292,8 +290,9 @@ class ScaffoldSelectWindow(QWidget):
                 self.currentSelect = radiobutton.name
 
         pushButton = QPushButton("Select scaffold")
-        layout.addWidget(pushButton, 0,1)
-        pushButton.clicked.connect(lambda: self.closeWindow(self, mainWindow, dirName))
+        layout.addWidget(pushButton, 0, 1)
+        pushButton.clicked.connect(
+            lambda: self.closeWindow(self, mainWindow, dirName))
 
     def onClicked(self):
         radioButton = self.sender()
@@ -306,6 +305,7 @@ class ScaffoldSelectWindow(QWidget):
         window.close()
         self.selectedScaffold = os.path.join(dirName, self.currentSelect)
         mainWindow.RunSequenceDesigner(self.selectedScaffold)
+
 
 class check_boxes(QtWidgets.QWidget):
     exists = False
