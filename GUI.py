@@ -116,6 +116,7 @@ class Ui_MainWindow(object):
 
             # Plot if window is clear
             if Rpoly_Object.plotted == False:
+                self.CreateNewGrid(2, 4)
                 self.ply.PlotPly()
         else:
             self.ply.OpenPly()
@@ -124,8 +125,8 @@ class Ui_MainWindow(object):
         """
         Plots ply file to window
         """
-        self.ClearScreen()
         if Ply_Object.exists == True:
+            self.ClearScreen()
             self.CreateNewGrid(2, 4)
             self.ply.PlotPly()
         else:
@@ -145,6 +146,7 @@ class Ui_MainWindow(object):
 
             # Plot if window is clear
             if Ply_Object.plotted == False:
+                self.CreateNewGrid(10, 80)
                 self.rpoly.PlotRpoly()
         else:
             self.rpoly.OpenRpoly()
@@ -155,8 +157,8 @@ class Ui_MainWindow(object):
         """
         Plot rpoly file to window
         """
-        self.ClearScreen()
         if Rpoly_Object.exists == True:
+            self.ClearScreen()
             self.CreateNewGrid(10, 80)
             self.rpoly.PlotRpoly()
         else:
