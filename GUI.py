@@ -5,6 +5,7 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import *
 import pyqtgraph.opengl as gl
 import numpy as np
+import math
 
 from pyquaternion import Quaternion
 from tacoxDNA.src.libs import cadnano_utils as cu
@@ -332,16 +333,15 @@ class check_boxes(QtWidgets.QWidget):
         """
         Create all checkboxes
         """
-        vertPos = 0
-        cnt = 0
         self.box = {}
         for i in range(self.plotObj.edgeNum):
-            self.box[cnt] = QtWidgets.QCheckBox(str(i), win)
-            self.box[cnt].move(900, vertPos+150)
+            self.box[i] = QtWidgets.QCheckBox(str(i), win)
+
+            xPos = 880 + math.floor(i/40) * 60
+            yPos = (i % 40) * 20 + 145
+            self.box[i].move(xPos, yPos)
             self.box[i].stateChanged.connect(self.click_on_check_box)
             self.box[i].show()
-            vertPos += 20
-            cnt += 1
 
     def update_checkboxes(self):
         """
