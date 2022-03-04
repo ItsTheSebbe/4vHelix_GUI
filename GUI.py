@@ -12,6 +12,7 @@ from tacoxDNA.src.libs import base
 from load_files import open_ply, open_rpoly, open_ntrail
 from load_files import move_along_vector
 from vHelix_auto_2 import GenerateJson
+from seq_designer import seq_designer
 
 
 class Ui_MainWindow(object):
@@ -128,8 +129,11 @@ class Ui_MainWindow(object):
             # Create new instance of Ply object
             self.rpoly = Rpoly_Object(self.glViewer)
             self.rpoly.OpenRpoly()
+            self.generatedJson = False
         else:
             self.rpoly.OpenRpoly()
+            self.generatedJson = False
+
 
     def PlotRpoly(self):
         self.CreateNewGrid(10, 80)
@@ -186,7 +190,16 @@ class Ui_MainWindow(object):
             print("No file selected!")
 
     def RunSequenceDesigner(self):
-        print("sequence designer placeholder")
+        if self.generatedJson == True:
+            selectedScaffold = "scaffold_files/M13mp18"
+            dirName = str(self.rpoly.fileNameNoExt)
+            fileName = str(self.rpoly.fileNameNoExt) + ".json"
+            jsonPath = os.path.join(dirName, fileName)
+            seq_designer(jsonPath, selectedScaffold)
+
+        else:
+            print("Please reinforce edges first!")
+        
 
     def Reinforce(self):
         if Rpoly_Object.exists == False:
@@ -204,11 +217,12 @@ class Ui_MainWindow(object):
             selectedEdgesOffset = self.rpoly.selectedEdges.copy()
             for i in range(self.rpoly.edgeNum):
                 selectedEdgesOffset[i] = selectedEdgesOffset[i] + 1
-            
+
             # faces_list = self.ply.faces.tolist()
             # print(self.rpoly.selectedEdges)
             GenerateJson(self.rpoly.fileNameNoExt, selectedEdgesOffset, self.rpoly.rpoly_data,
                          self.rpoly.fwd_helix_connections, self.rpoly.rev_helix_connections, self.ntrail.n_trail_list, self.ply.faces_full)
+            self.generatedJson = True
         else:
             print("Please plot rpoly file and select edges.")
 
