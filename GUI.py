@@ -334,11 +334,17 @@ class check_boxes(QtWidgets.QWidget):
         Create all checkboxes
         """
         self.box = {}
+        maxPerColumn = 40
+        numColumns = math.floor(self.plotObj.edgeNum/maxPerColumn) + 1
+        if numColumns > 2:
+            shiftColumnNum = numColumns - 2
+            win.resize(1000 + 60 * shiftColumnNum, 1100)
+
         for i in range(self.plotObj.edgeNum):
             self.box[i] = QtWidgets.QCheckBox(str(i), win)
 
-            xPos = 880 + math.floor(i/40) * 60
-            yPos = (i % 40) * 20 + 145
+            xPos = 880 + math.floor(i/maxPerColumn) * 60
+            yPos = (i % maxPerColumn) * 20 + 145
             self.box[i].move(xPos, yPos)
             self.box[i].stateChanged.connect(self.click_on_check_box)
             self.box[i].show()
