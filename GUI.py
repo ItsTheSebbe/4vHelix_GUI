@@ -32,20 +32,10 @@ class Ui_MainWindow(object):
         self.pushButton_openrpoly.setObjectName("pushButton_open_rpoly")
         self.pushButton_openrpoly.clicked.connect(self.OpenRpoly)
 
-        self.pushButton_plotrpoly = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plotrpoly.setGeometry(QtCore.QRect(10, 70, 90, 40))
-        self.pushButton_plotrpoly.setObjectName("pushButton_plot_rpoly")
-        self.pushButton_plotrpoly.clicked.connect(self.PlotRpoly)
-
         self.pushButton_openply = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_openply.setGeometry(QtCore.QRect(110, 20, 90, 40))
         self.pushButton_openply.setObjectName("pushButton_load_ply")
         self.pushButton_openply.clicked.connect(self.OpenPly)
-
-        self.pushButton_plotply = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_plotply.setGeometry(QtCore.QRect(110, 70, 90, 40))
-        self.pushButton_plotply.setObjectName("pushButton_plot_ply")
-        self.pushButton_plotply.clicked.connect(self.PlotPly)
 
         self.pushButton_openntrail = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_openntrail.setGeometry(QtCore.QRect(210, 20, 90, 40))
@@ -90,10 +80,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "4vHelix"))
         self.pushButton_openrpoly.setText(
             _translate("MainWindow", "Open rpoly"))
-        self.pushButton_plotrpoly.setText(
-            _translate("MainWindow", "Plot rpoly"))
         self.pushButton_openply.setText(_translate("MainWindow", "Open ply"))
-        self.pushButton_plotply.setText(_translate("MainWindow", "Plot ply"))
         self.pushButton_openntrail.setText(
             _translate("MainWindow", "Open ntrail"))
         self.pushButton_seq_designer.setText(_translate(
@@ -105,11 +92,26 @@ class Ui_MainWindow(object):
         self.pushButton_deselect_all.setText(
             _translate("MainWindow", "Deselect all"))
 
+    def SwitchView(self):
+        """
+        Switch view
+        """
+        if self.buttonswitchLabel == "View Ply":
+            self.PlotPly()
+        elif self.buttonswitchLabel == "View Rpoly":
+            self.PlotRpoly()
+        else:
+            exit(1)
+
     def OpenPly(self):
         """
         Load ply file.
         """
-
+        self.buttonswitch = QPushButton(self.centralwidget)
+        self.buttonswitch.resize(90,40)
+        self.buttonswitch.move(10,70)
+        self.buttonswitch.clicked.connect(self.SwitchView
+        )
         if Ply_Object.exists == False:
             # Create new instance of Ply object
             self.ply = Ply_Object(self.glViewer)
@@ -121,17 +123,30 @@ class Ui_MainWindow(object):
                 self.ply.PlotPly()
         else:
             self.ply.OpenPly()
-
+        
+        if Rpoly_Object.plotted == True and Ply_Object.exists == True:
+            self.buttonswitchLabel = "View Ply"
+            self.buttonswitch.setText(self.buttonswitchLabel)
+            self.buttonswitch.show()
+    
     def PlotPly(self):
         """
         Plots ply file to window
         """
+
         if Ply_Object.exists == True:
             self.ClearScreen()
             self.CreateNewGrid(2, 4)
             self.ply.PlotPly()
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open a Ply file!")
             print("Please open a ply file!")
+        
+        if Rpoly_Object.exists == True:
+            self.buttonswitchLabel = "View Rpoly"
+
+            self.buttonswitch.setText(self.buttonswitchLabel)
+            self.buttonswitch.show()
 
     def OpenRpoly(self):
         """
@@ -152,6 +167,11 @@ class Ui_MainWindow(object):
             self.rpoly.OpenRpoly()
             self.generatedJson = False
 
+        if Ply_Object.plotted == True and Rpoly_Object.exists == True:
+            self.buttonswitchLabel = "View Rpoly"
+            self.buttonswitch.setText(self.buttonswitchLabel)
+            self.buttonswitch.show()
+
     def PlotRpoly(self):
         """
         Plot rpoly file to window
@@ -161,7 +181,13 @@ class Ui_MainWindow(object):
             self.CreateNewGrid(10, 80)
             self.rpoly.PlotRpoly()
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open an Rpoly file!")
             print("Please open an rpoly file!")
+        
+        if Ply_Object.exists == True:
+            self.buttonswitchLabel = "View Ply"
+            self.buttonswitch.setText(self.buttonswitchLabel)
+            self.buttonswitch.show()
 
     def OpenNtrail(self):
         """
@@ -202,6 +228,7 @@ class Ui_MainWindow(object):
         elif Rpoly_Object.plotted == True:
             self.rpoly.AddAllHighlight()
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open a file first!")
             print("No file selected!")
 
     def DeselectAll(self):
@@ -213,6 +240,7 @@ class Ui_MainWindow(object):
         elif Rpoly_Object.plotted == True:
             self.rpoly.RemoveAllHighlight()
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open a file first!")
             print("No file selected!")
 
     def RunSequenceDesigner(self, selectedScaffold):
@@ -233,6 +261,7 @@ class Ui_MainWindow(object):
             self.windoww = ScaffoldSelectWindow(dirName, self)
             self.windoww.show()
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please reinforce edges first!")
             print("Please reinforce edges first!")
 
     def Reinforce(self):
@@ -241,11 +270,14 @@ class Ui_MainWindow(object):
         """
         if Rpoly_Object.exists == False:
             print("Please open Rpoly file!")
+            QMessageBox.critical(self.centralwidget, "Error", "Please open Rpoly file!")
             return
         if Ply_Object.exists == False:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open Ply file!")
             print("Please open ply file!")
             return
         if Ntrail.exists == False:
+            QMessageBox.critical(self.centralwidget, "Error", "Please open Ntrail file!")
             print("Please open ntrail file!")
             return
 
@@ -255,12 +287,11 @@ class Ui_MainWindow(object):
             for i in range(self.rpoly.edgeNum):
                 selectedEdgesOffset[i] = selectedEdgesOffset[i] + 1
 
-            # faces_list = self.ply.faces.tolist()
-            # print(self.rpoly.selectedEdges)
             GenerateJson(self.rpoly.fileNameNoExt, selectedEdgesOffset, self.rpoly.rpoly_data,
                          self.rpoly.fwd_helix_connections, self.rpoly.rev_helix_connections, self.ntrail.n_trail_list, self.ply.faces_full)
             self.generatedJson = True
         else:
+            QMessageBox.critical(self.centralwidget, "Error", "Please plot Rpoly file and select edges to reinforce!")
             print("Please plot rpoly file and select edges.")
 
     def ClearScreen(self):
@@ -395,6 +426,7 @@ class Ntrail(QtWidgets.QWidget):
             print("Succesfully opened ntrail file")
 
         else:
+            QMessageBox.critical(self,"Error", "Unable to open Ntrail file!")
             print("Unable to load ntrail file!")
 
 
@@ -406,6 +438,8 @@ class Ply_Object(QtWidgets.QWidget):
     def __init__(self, glViewer):
         self.selectedEdges = []
         self.glViewer = glViewer
+        super(Ply_Object, self).__init__(None)
+
 
     def OpenPly(self):
         # Get file path
@@ -418,6 +452,7 @@ class Ply_Object(QtWidgets.QWidget):
             Ply_Object.exists = True
             print("Succesfully opened .ply file")
         else:
+            QMessageBox.critical(self,"Error", "Unable to open Ply file!")
             print("Unable to load .ply file!")
 
     def PlotPly(self):
@@ -563,6 +598,8 @@ class Rpoly_Object(QtWidgets.QWidget):
     def __init__(self, glViewer):
         self.selectedEdges = []
         self.glViewer = glViewer
+        super(Rpoly_Object, self).__init__(None)
+
 
     def OpenRpoly(self):
         # Get file path
@@ -579,6 +616,7 @@ class Rpoly_Object(QtWidgets.QWidget):
             Rpoly_Object.exists = True
             print("Succesfully opened .rpoly file")
         else:
+            QMessageBox.critical(self,"Error", "Unable to load Rpoly file!")
             print("Unable to load .rpoly file!")
 
     def PlotRpoly(self):
