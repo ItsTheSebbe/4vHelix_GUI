@@ -142,7 +142,7 @@ class Ui_MainWindow(object):
             QMessageBox.critical(self.centralwidget, "Error", "Please open a Ply file!")
             print("Please open a ply file!")
         
-        if Rpoly_Object.exists == True:
+        if Rpoly_Object.exists == True and Ply_Object.exists == True:
             self.buttonswitchLabel = "View Rpoly"
 
             self.buttonswitch.setText(self.buttonswitchLabel)
@@ -171,6 +171,7 @@ class Ui_MainWindow(object):
             self.buttonswitchLabel = "View Rpoly"
             self.buttonswitch.setText(self.buttonswitchLabel)
             self.buttonswitch.show()
+        
 
     def PlotRpoly(self):
         """
@@ -184,7 +185,7 @@ class Ui_MainWindow(object):
             QMessageBox.critical(self.centralwidget, "Error", "Please open an Rpoly file!")
             print("Please open an rpoly file!")
         
-        if Ply_Object.exists == True:
+        if Ply_Object.exists == True and Rpoly_Object.exists == True:
             self.buttonswitchLabel = "View Ply"
             self.buttonswitch.setText(self.buttonswitchLabel)
             self.buttonswitch.show()
@@ -452,6 +453,7 @@ class Ply_Object(QtWidgets.QWidget):
             Ply_Object.exists = True
             print("Succesfully opened .ply file")
         else:
+            Ply_Object.exists = False
             QMessageBox.critical(self,"Error", "Unable to open Ply file!")
             print("Unable to load .ply file!")
 
@@ -616,6 +618,7 @@ class Rpoly_Object(QtWidgets.QWidget):
             Rpoly_Object.exists = True
             print("Succesfully opened .rpoly file")
         else:
+            Rpoly_Object.exists = False
             QMessageBox.critical(self,"Error", "Unable to load Rpoly file!")
             print("Unable to load .rpoly file!")
 
