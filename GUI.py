@@ -244,26 +244,27 @@ class Ui_MainWindow(object):
             QMessageBox.critical(self.centralwidget, "Error", "Please open a file first!")
             print("No file selected!")
 
-    def RunSequenceDesigner(self, selectedScaffold):
-        """
-        Call seq_designer 
-        """
-        dirName = str(self.rpoly.fileNameNoExt)
-        fileName = str(self.rpoly.fileNameNoExt) + ".json"
-        jsonPath = os.path.join(dirName, fileName)
-        seq_designer(jsonPath, selectedScaffold)
-
     def OpenScaffold(self):
         """
         Open up scaffold selection prompt
         """
+        dirScaffolds = 'scaffold_files'
         if self.generatedJson == True:
-            dirName = 'scaffold_files'
-            self.windoww = ScaffoldSelectWindow(dirName, self)
-            self.windoww.show()
+            dirName = str(self.rpoly.fileNameNoExt)
+            fileName = str(self.rpoly.fileNameNoExt) + ".json"
+            jsonPath = os.path.join(dirName, fileName)
+            scaffoldSelectWindow = ScaffoldSelectWindow(dirScaffolds, jsonPath)
+            scaffoldSelectWindow.show()
         else:
-            QMessageBox.critical(self.centralwidget, "Error", "Please reinforce edges first!")
-            print("Please reinforce edges first!")
+            answer = QMessageBox.question(self.centralwidget, "Warning", "You did not reinforce edges.\n\nWould you like to manually run sequence designer on a json file?", QMessageBox.Yes | QMessageBox.No)
+            
+            # Manually run sequence designer
+            if answer == QMessageBox.Yes:
+                jsonPath = QtWidgets.QFileDialog.getOpenFileName()
+                jsonPath = jsonPath[0]
+                scaffoldSelectWindow = ScaffoldSelectWindow(dirScaffolds, jsonPath)
+                scaffoldSelectWindow.show()
+
 
     def Reinforce(self):
         """
@@ -306,10 +307,11 @@ class Ui_MainWindow(object):
 
 
 class ScaffoldSelectWindow(QWidget):
-    def __init__(self, dirName, mainWindow):
+    def __init__(self, dirName, jsonPath):
         QWidget.__init__(self)
         layout = QGridLayout()
         self.setLayout(layout)
+        self.jsonPath = jsonPath
         scaffoldNames = os.listdir(dirName)
 
         for i in range(len(scaffoldNames)):
@@ -325,7 +327,7 @@ class ScaffoldSelectWindow(QWidget):
         pushButton = QPushButton("Select scaffold")
         layout.addWidget(pushButton, 0, 1)
         pushButton.clicked.connect(
-            lambda: self.closeWindow(self, mainWindow, dirName))
+            lambda: self.closeWindow(self, dirName))
 
     def onClicked(self):
         radioButton = self.sender()
@@ -333,11 +335,19 @@ class ScaffoldSelectWindow(QWidget):
         if radioButton.isChecked():
             print("Currently Selected scaffold is %s" % (self.currentSelect))
 
-    def closeWindow(self, window, mainWindow, dirName):
+    def closeWindow(self, window, dirName):
         print("You selected %s" % (self.currentSelect))
         window.close()
         self.selectedScaffold = os.path.join(dirName, self.currentSelect)
-        mainWindow.RunSequenceDesigner(self.selectedScaffold)
+
+        try:
+            seq_designer(self.jsonPath, self.selectedScaffold)
+            QMessageBox.information(self,"Succes", "Succesfully ran sequence designer!")
+        except SystemExit:
+            QMessageBox.critical(self,"Error", "The sequence designer found an error in the json file!\nPlease see console for more information regarding the error.")
+
+        
+        # mainWindow.RunSequenceDesigner(self.selectedScaffold)
 
 
 class check_boxes(QtWidgets.QWidget):
