@@ -264,6 +264,12 @@ class Ui_MainWindow(object):
             if answer == QMessageBox.Yes:
                 jsonPath = QtWidgets.QFileDialog.getOpenFileName()
                 jsonPath = jsonPath[0]
+
+                # If selected file is not a json file
+                _, extension = os.path.splitext(jsonPath)
+                if extension != '.json':
+                    QMessageBox.critical(self.centralwidget, "Error", "Please select a json file!")
+                    return
                 scaffoldSelectWindow = ScaffoldSelectWindow(dirScaffolds, jsonPath)
                 scaffoldSelectWindow.show()
 
@@ -314,6 +320,7 @@ class ScaffoldSelectWindow(QWidget):
         layout = QGridLayout()
         self.setLayout(layout)
         self.jsonPath = jsonPath
+
         scaffoldNames = os.listdir(dirName)
 
         for i in range(len(scaffoldNames)):
