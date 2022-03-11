@@ -22,7 +22,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1000, 1100)
+        MainWindow.resize(860, 970)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -43,32 +43,32 @@ class Ui_MainWindow(object):
         self.pushButton_openntrail.clicked.connect(self.OpenNtrail)
 
         self.pushButton_select_all = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_select_all.setGeometry(QtCore.QRect(350, 20, 90, 40))
+        self.pushButton_select_all.setGeometry(QtCore.QRect(350, 20, 150, 40))
         self.pushButton_select_all.setObjectName("pushButton_select_all_edge")
         self.pushButton_select_all.clicked.connect(self.AddAllHighlight)
 
         self.pushButton_deselect_all = QtWidgets.QPushButton(
             self.centralwidget)
-        self.pushButton_deselect_all.setGeometry(QtCore.QRect(450, 20, 90, 40))
+        self.pushButton_deselect_all.setGeometry(QtCore.QRect(350, 70, 150, 40))
         self.pushButton_deselect_all.setObjectName(
             "pushButton_deselect_all_edge")
         self.pushButton_deselect_all.clicked.connect(self.DeselectAll)
 
         self.pushButton_reinforce = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_reinforce.setGeometry(QtCore.QRect(600, 20, 180, 40))
+        self.pushButton_reinforce.setGeometry(QtCore.QRect(590, 20, 180, 40))
         self.pushButton_reinforce.setObjectName("pushButton_reinforce_edge")
         self.pushButton_reinforce.clicked.connect(self.Reinforce)
 
         self.pushButton_seq_designer = QtWidgets.QPushButton(
             self.centralwidget)
         self.pushButton_seq_designer.setGeometry(
-            QtCore.QRect(800, 20, 180, 40))
+            QtCore.QRect(590, 70, 180, 40))
         self.pushButton_seq_designer.setObjectName("pushButton_seq_designer")
         self.pushButton_seq_designer.clicked.connect(self.OpenScaffold)
         self.generatedJson = False
 
         self.glViewer = gl.GLViewWidget(self.centralwidget)
-        self.glViewer.setGeometry(QtCore.QRect(50, 150, 800, 800))
+        self.glViewer.setGeometry(QtCore.QRect(10, 120, 840, 840))
         self.glViewer.setObjectName("GL_viewer")
         self.SetupGLViewer()
 
@@ -84,13 +84,13 @@ class Ui_MainWindow(object):
         self.pushButton_openntrail.setText(
             _translate("MainWindow", "Open ntrail"))
         self.pushButton_seq_designer.setText(_translate(
-            "MainWindow", "Run Sequence Designer"))
+            "MainWindow", "Run sequence designer"))
         self.pushButton_reinforce.setText(
             _translate("MainWindow", "Reinforce selected edges"))
         self.pushButton_select_all.setText(
-            _translate("MainWindow", "Select all"))
+            _translate("MainWindow", "Select all edges"))
         self.pushButton_deselect_all.setText(
-            _translate("MainWindow", "Deselect all"))
+            _translate("MainWindow", "Deselect all edges"))
 
     def SwitchView(self):
         """
@@ -117,13 +117,15 @@ class Ui_MainWindow(object):
             self.ply = Ply_Object(self.glViewer)
             self.ply.OpenPly()
 
-            # Plot if window is clear
-            if Rpoly_Object.plotted == False:
-                self.CreateNewGrid(2, 4)
-                self.ply.PlotPly()
         else:
             self.ply.OpenPly()
-        
+
+        # Plot if window is clear
+        if Rpoly_Object.plotted == False:
+            self.ClearScreen()
+            self.CreateNewGrid(2, 4)
+            self.ply.PlotPly()
+
         if Rpoly_Object.plotted == True and Ply_Object.exists == True:
             self.buttonswitchLabel = "View Ply"
             self.buttonswitch.setText(self.buttonswitchLabel)
@@ -158,14 +160,14 @@ class Ui_MainWindow(object):
             self.rpoly = Rpoly_Object(self.glViewer)
             self.rpoly.OpenRpoly()
             self.generatedJson = False
-
-            # Plot if window is clear
-            if Ply_Object.plotted == False:
-                self.CreateNewGrid(10, 80)
-                self.rpoly.PlotRpoly()
         else:
             self.rpoly.OpenRpoly()
             self.generatedJson = False
+
+        if Ply_Object.plotted == False:
+            self.ClearScreen()
+            self.CreateNewGrid(10, 80)
+            self.rpoly.PlotRpoly()
 
         if Ply_Object.plotted == True and Rpoly_Object.exists == True:
             self.buttonswitchLabel = "View Rpoly"
@@ -378,14 +380,13 @@ class check_boxes(QtWidgets.QWidget):
         self.box = {}
         maxPerColumn = 40
         numColumns = math.floor(self.plotObj.edgeNum/maxPerColumn) + 1
-        if numColumns > 2:
-            shiftColumnNum = numColumns - 2
-            win.resize(1000 + 60 * shiftColumnNum, 1100)
+        win.resize(860 + 60 * numColumns, 970)
+
 
         for i in range(self.plotObj.edgeNum):
             self.box[i] = QtWidgets.QCheckBox(str(i), win)
 
-            xPos = 880 + math.floor(i/maxPerColumn) * 60
+            xPos = 865 + math.floor(i/maxPerColumn) * 60
             yPos = (i % maxPerColumn) * 20 + 145
             self.box[i].move(xPos, yPos)
             self.box[i].stateChanged.connect(self.click_on_check_box)
