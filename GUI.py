@@ -73,6 +73,12 @@ class Ui_MainWindow(object):
         self.glViewer.setObjectName("GL_viewer")
         self.SetupGLViewer()
 
+        self.buttonswitch = QPushButton(self.centralwidget)
+        self.buttonswitch.resize(90, 90)
+        self.buttonswitch.move(750, 20)
+        self.buttonswitch.clicked.connect(self.SwitchView)
+        self.buttonswitch.hide()
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -110,16 +116,11 @@ class Ui_MainWindow(object):
         """
         Load ply file.
         """
-        self.buttonswitch = QPushButton(self.centralwidget)
-        self.buttonswitch.resize(90, 90)
-        self.buttonswitch.move(750, 20)
-        self.buttonswitch.clicked.connect(self.SwitchView
-                                          )
+
         if Ply_Object.exists == False:
             # Create new instance of Ply object
             self.ply = Ply_Object(self.glViewer)
             self.ply.OpenPly()
-
         else:
             self.ply.OpenPly()
 
@@ -133,6 +134,14 @@ class Ui_MainWindow(object):
             self.buttonswitchLabel = "View\nPly"
             self.buttonswitch.setText(self.buttonswitchLabel)
             self.buttonswitch.show()
+
+        # Switch to rpoly plot if ply loading fails
+        if Rpoly_Object.exists == True and Rpoly_Object.plotted == False and Ply_Object.exists == False:
+            self.PlotRpoly()
+
+        # Remove switch view button
+        if Rpoly_Object.exists == False or Ply_Object.exists == False:
+            self.buttonswitch.hide()
 
     def PlotPly(self):
         """
@@ -177,6 +186,14 @@ class Ui_MainWindow(object):
             self.buttonswitchLabel = "View\nRpoly"
             self.buttonswitch.setText(self.buttonswitchLabel)
             self.buttonswitch.show()
+
+        # Switch to ply plot if rpoly loading fails
+        if Ply_Object.exists == True and Ply_Object.plotted == False and Rpoly_Object.exists == False:
+            self.PlotPly()
+
+        # Remove switch view button
+        if Rpoly_Object.exists == False or Ply_Object.exists == False:
+            self.buttonswitch.hide()
 
     def PlotRpoly(self):
         """
@@ -476,7 +493,6 @@ class Ntrail(QtWidgets.QWidget):
 
             # QMessageBox.information(self, "Success", "Succesfully opened Ntrail file!")
 
-
         else:
             Ntrail.exists = False
             QMessageBox.critical(self, "Error", "Unable to open Ntrail file!")
@@ -498,6 +514,9 @@ class Ply_Object(QtWidgets.QWidget):
     def OpenPly(self):
         # Get file path
         file_path = QtWidgets.QFileDialog.getOpenFileName()
+        if file_path[0] == '':
+            return
+
         self.vertNum, self.vertices, self.faceNum, self.faces, self.faces_full, self.loadFlag = open_ply(
             str(file_path[0]))
 
@@ -506,7 +525,6 @@ class Ply_Object(QtWidgets.QWidget):
             Ply_Object.exists = True
             print("Succesfully opened .ply file")
             ui.pushButton_openply.setStyleSheet("background-color: green")
-            
 
         else:
             Ply_Object.exists = False
@@ -662,6 +680,8 @@ class Rpoly_Object(QtWidgets.QWidget):
     def OpenRpoly(self):
         # Get file path
         file_path = QtWidgets.QFileDialog.getOpenFileName()
+        if file_path[0] == '':
+            return
         self.rpoly_data, self.fwd_helix_connections, self.rev_helix_connections, self.loadFlag = open_rpoly(
             str(file_path[0]))
         # Get file name
@@ -673,12 +693,12 @@ class Rpoly_Object(QtWidgets.QWidget):
         if self.loadFlag == True:
             Rpoly_Object.exists = True
             print("Succesfully opened .rpoly file")
-            
+
             ui.pushButton_openrpoly.setStyleSheet("background-color: green")
 
         else:
             Rpoly_Object.exists = False
-            QMessageBox.critical(self, "Error", "Unable to load Rpoly file!")
+            QMessageBox.critical(self, "Error", "Unable to open Rpoly file!")
             ui.pushButton_openrpoly.setStyleSheet("background-color: None")
 
             print("Unable to load .rpoly file!")
