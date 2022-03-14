@@ -79,6 +79,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "4vHelix"))
+
+        MainWindow.setWindowIcon(QtGui.QIcon('icon.png'))
         self.pushButton_openrpoly.setText(
             _translate("MainWindow", "Open rpoly"))
         self.pushButton_openply.setText(_translate("MainWindow", "Open ply"))
