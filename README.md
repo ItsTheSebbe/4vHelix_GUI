@@ -20,13 +20,13 @@ Note: the .rpoly and .ntrail files can be generated from a .ply file, using [bsc
 
 ## Output
 The edge reinforcement routine will generate two output files:
-- <filename>.json - contains the cadnano json file of the structure including reinforcement of the selected edges.
-- <filename>._virt_scaff.xlsx - contains sequences for the edges (might be deprecated).
+- filename.json - contains the cadnano json file of the structure including reinforcement of the selected edges.
+- filename_virt_scaff.xlsx - contains sequences for the edges (might be deprecated).
 
 The sequence designer/generator will generate three output files:
-- scaffolds_<filename>.txt - contains the sequences of the scaffold strands. Moreover, it contains the start and end location, and the length of each scaffold.
-- staples_<filename>.txt - contains the sequences of the staple strands. Moreover, it contains the start and end location, and the length of each staple.
-- visualized_sequence_<filename>.txt - contains a nicely formatted visualization of the scaffold and staple sequence data, analogous to the visual representation in cadnano. This might be useful for checking the final results.
+- scaffolds_filename.txt - contains the sequences of the scaffold strands. Moreover, it contains the start and end location, and the length of each scaffold.
+- staples_filename.txt - contains the sequences of the staple strands. Moreover, it contains the start and end location, and the length of each staple.
+- visualized_sequence_filename.txt - contains a nicely formatted visualization of the scaffold and staple sequence data, analogous to the visual representation in cadnano. This might be useful for checking the final results.
 
 More information about the sequence generating routine can be found [here](https://github.com/ItsTheSebbe/SequenceDesigner).
   
