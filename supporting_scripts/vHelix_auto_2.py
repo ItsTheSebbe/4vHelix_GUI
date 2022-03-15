@@ -6,11 +6,10 @@ import json
 import io
 from pathlib import Path
 import random
-from virtual_scaffold import save_workbook
+from supporting_scripts.virtual_scaffold import save_workbook
 import numpy as np
 from tacoxDNA.src.libs import cadnano_utils as cu
 from collections import Counter
-from load_files import open_ply, open_rpoly, open_ntrail
 
 
 def unit_vector(vector):  #from here https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python

@@ -11,10 +11,10 @@ from pyquaternion import Quaternion
 from tacoxDNA.src.libs import cadnano_utils as cu
 from tacoxDNA.src.libs import base
 
-from load_files import open_ply, open_rpoly, open_ntrail
-from load_files import move_along_vector
-from vHelix_auto_2 import GenerateJson
-from seq_designer import seq_designer
+from supporting_scripts.load_files import open_ply, open_rpoly, open_ntrail
+from supporting_scripts.load_files import move_along_vector
+from supporting_scripts.vHelix_auto_2 import GenerateJson
+from supporting_scripts.seq_designer import seq_designer
 
 
 class Ui_MainWindow(object):
@@ -426,11 +426,20 @@ class check_boxes(QtWidgets.QWidget):
         """
         for i in range(self.plotObj.edgeNum):
             self.box[i].deleteLater()
+        self.label.deleteLater()
+        
 
     def CreateCheckboxes(self):
         """
         Create all checkboxes
         """
+
+        self.label = QLabel(win)
+        self.label.setText("Selected\nedges:")
+        self.label.move(860,100)
+        self.label.adjustSize()
+        self.label.show()
+
         self.box = {}
         maxPerColumn = 40
         numColumns = math.floor(self.plotObj.edgeNum/maxPerColumn) + 1
