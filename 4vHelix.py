@@ -6,11 +6,11 @@ from PyQt5.QtWidgets import *
 import pyqtgraph.opengl as gl
 import numpy as np
 import math
-
 from pyquaternion import Quaternion
-from tacoxDNA.src.libs import cadnano_utils as cu
-from tacoxDNA.src.libs import base
 
+sys.path.insert(0,"supporting_scripts")
+from supporting_scripts.tacoxDNA.src.libs import cadnano_utils as cu
+from supporting_scripts.tacoxDNA.src.libs import base
 from supporting_scripts.load_files import open_ply, open_rpoly, open_ntrail
 from supporting_scripts.load_files import move_along_vector
 from supporting_scripts.vHelix_auto_2 import GenerateJson

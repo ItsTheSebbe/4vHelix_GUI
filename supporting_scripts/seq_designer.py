@@ -3,7 +3,7 @@ import json
 import sys
 import numpy as np
 import random
-from supporting_scripts.scaffold_generator import sequence_creator
+from scaffold_generator import sequence_creator
 import time
 
 

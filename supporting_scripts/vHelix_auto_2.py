@@ -6,7 +6,7 @@ import json
 import io
 from pathlib import Path
 import random
-from supporting_scripts.virtual_scaffold import save_workbook
+from virtual_scaffold import save_workbook
 import numpy as np
 from tacoxDNA.src.libs import cadnano_utils as cu
 from collections import Counter
