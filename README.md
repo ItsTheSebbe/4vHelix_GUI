@@ -40,5 +40,6 @@ The following is an example for workflow of reinforcing edges.
 - Press "Reinforce selected edges".
 - Press "Run sequence designer"
 - Select which scaffold you want to use (if your desired scaffold is not in here, you can simply add it to the scaffold_files folder).
+- The resulting .json file can be visualized using for example [oxView](https://sulcgroup.github.io/oxdna-viewer/).
   
 ![Screenshot from 2022-03-14 12-23-42](https://user-images.githubusercontent.com/28595211/158162789-7e09d253-d2cb-4f33-b7b9-7173e6946193.png)
